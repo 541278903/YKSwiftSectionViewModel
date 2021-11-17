@@ -1,0 +1,16 @@
+PODS:
+  - YKSwiftSectionViewModel (0.1.0)
+
+DEPENDENCIES:
+  - YKSwiftSectionViewModel (from `../`)
+
+EXTERNAL SOURCES:
+  YKSwiftSectionViewModel:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  YKSwiftSectionViewModel: 948a75eb49964409ccfe79fc54643e311aed35cc
+
+PODFILE CHECKSUM: 588af32638e7b65801f45492be994f48d789214d
+
+COCOAPODS: 1.11.2
