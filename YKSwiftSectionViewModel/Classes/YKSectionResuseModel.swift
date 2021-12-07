@@ -9,10 +9,10 @@ import Foundation
 
 public class YKSectionResuseModel: NSObject {
     
-    public var className:String = ""
+    public var className:AnyClass? = nil
     public var classId:String = ""
     
-    public init(className:String,classId:String) {
+    public init(className:AnyClass?,classId:String) {
         super.init()
         self.className = className
         self.classId = classId
