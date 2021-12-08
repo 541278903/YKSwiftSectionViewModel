@@ -9,11 +9,23 @@ import UIKit
 
 public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateFlowLayout,UICollectionViewDelegate,UICollectionViewDataSource {
     
+    public var nodataView:YKSectionNoDataView {
+        get {
+            let view = YKSectionNoDataView.init(frame: self.bounds)
+            view.reloadCallBack = {
+                self.refreshData(mode: .Header)
+            }
+            return view
+        }
+    }
+    
     private lazy var datas:Array<YKSectionViewModelMainProtocol> = []
     
     public var errorCallBack:((_ error:Error)->Void)?
     
     public var handleViewController:((_ controller:UIViewController, _ type:YKSectionViewModelPushType.RawValue, _ animated:Bool)->Void)?
+    
+    public var endRefresh:(()->Void)?
     
     public init(frame: CGRect,datas:Array<YKSectionViewModelMainProtocol>) {
         super.init(frame: frame, collectionViewLayout: UICollectionViewFlowLayout.init())
@@ -87,7 +99,26 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
     }
     
     public override func reloadData() {
+        if self.endRefresh != nil {
+            self.endRefresh!()
+        }
         super.reloadData()
+        if self.datas.count >= 0 {
+            var count:Int = 0
+            for obj in self.datas {
+                count = count + obj.yksc_numberOfItem()
+            }
+            if count <= 0 {
+                //add nodata
+                self.addSubview(self.nodataView)
+            }else{
+                //remove nodataView
+                self.nodataView.removeFromSuperview()
+            }
+        }else{
+            //add NoData
+            self.addSubview(self.nodataView)
+        }
     }
     
     //MARK: -delegate/datasource
@@ -235,11 +266,16 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         return result
     }
     
+    private func addNoDateView()->Void {
+        
+    }
     
     private func createError(errorMsg:String)->Void
     {
         let error = NSError.init(domain: "YKSwiftSectionViewModel", code: -1, userInfo: [
             NSLocalizedDescriptionKey:errorMsg,
+            NSLocalizedFailureReasonErrorKey:errorMsg,
+            NSLocalizedRecoverySuggestionErrorKey:"请检查内容",
         ])
         guard let errorBlock = self.errorCallBack else {
             return

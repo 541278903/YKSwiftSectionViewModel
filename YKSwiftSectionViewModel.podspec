@@ -31,6 +31,7 @@ TODO: Add long description of the pod here.
   s.ios.deployment_target = '9.0'
 
   s.source_files = 'YKSwiftSectionViewModel/Classes/**/*'
+  s.resources = "YKSwiftSectionViewModel/Assets/*.png"
   
   # s.resource_bundles = {
   #   'YKSwiftSectionViewModel' => ['YKSwiftSectionViewModel/Assets/*.png']
