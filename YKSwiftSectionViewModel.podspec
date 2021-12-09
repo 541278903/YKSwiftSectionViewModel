@@ -30,8 +30,8 @@ Pod::Spec.new do |s|
 
   s.ios.deployment_target = '9.0'
 
-  s.source_files = 'YKSwiftSectionViewModel/Classes/**/*'
-  s.resources = "YKSwiftSectionViewModel/Assets/*.png"
+  s.source_files = 'Sources/YKSwiftSectionViewModel/Classes/**/*'
+  s.resources = "Sources/YKSwiftSectionViewModel/Assets/*.png"
   
   # s.resource_bundles = {
   #   'YKSwiftSectionViewModel' => ['YKSwiftSectionViewModel/Assets/*.png']

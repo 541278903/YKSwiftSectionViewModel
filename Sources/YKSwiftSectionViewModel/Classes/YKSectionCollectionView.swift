@@ -2,7 +2,7 @@
 //  YKSectionCollectionView.swift
 //  YKSwiftSectionViewModel
 //
-//  Created by linghit on 2021/12/7.
+//  Created by edward on 2021/12/7.
 //
 
 import UIKit

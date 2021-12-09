@@ -1,6 +1,0 @@
-framework module YKSwiftSectionViewModel {
-  umbrella header "YKSwiftSectionViewModel-umbrella.h"
-
-  export *
-  module * { export * }
-}

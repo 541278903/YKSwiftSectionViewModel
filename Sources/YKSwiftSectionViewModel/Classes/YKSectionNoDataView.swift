@@ -2,7 +2,7 @@
 //  YKSectionNoDataView.swift
 //  YKSwiftSectionViewModel
 //
-//  Created by linghit on 2021/12/8.
+//  Created by edward on 2021/12/8.
 //
 
 import UIKit
