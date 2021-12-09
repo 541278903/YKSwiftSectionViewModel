@@ -1,6 +1,6 @@
 # YKSwiftSectionViewModel
 
-[![Platform](https://img.shields.io/badge/swift-v4.0-yellow.svg)](https://cocoapods.org/pods/YKSwiftSectionViewModel) [![CI Status](https://img.shields.io/badge/platform-iOS 9-red.svg)](https://gitee.com/Edwrard/YKSwiftSectionViewModel) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://gitee.com/Edwrard/YKSwiftSectionViewModel/blob/master/LICENSE)
+[![Platform](https://img.shields.io/badge/swift-v4.0-yellow.svg)](https://cocoapods.org/pods/YKSwiftSectionViewModel) [! [Platform](https://img.shields.io/badge/platform-iOS 9-red.svg)](https://gitee.com/Edwrard/YKSwiftSectionViewModel) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://gitee.com/Edwrard/YKSwiftSectionViewModel/blob/master/LICENSE)
 
 ## Requirements
 
