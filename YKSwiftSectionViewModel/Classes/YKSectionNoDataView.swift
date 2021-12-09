@@ -53,6 +53,10 @@ public class YKSectionNoDataView: UIView {
         }
     }
     
+    internal func setHidden(hidden:Bool)->Void {
+        self.isHidden = hidden
+    }
+    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

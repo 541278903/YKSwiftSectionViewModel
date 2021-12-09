@@ -52,6 +52,10 @@ public enum YKSectionViewModelRefreshMode:Int {
     /// - Returns: 头部信息
     @objc optional func yksc_registHeader()->YKSectionResuseModel
     
+    /// 没有数据时是否显示头部和底部
+    /// - Returns: 是否显示默认不显示
+    @objc optional func yksc_noDataShowHeaderFooter()->Bool
+    
     /// 获取当前头部尺寸
     /// - Parameter width: 当前collectionview宽度
     /// - Returns: 尺寸

@@ -9,15 +9,13 @@ import UIKit
 
 public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateFlowLayout,UICollectionViewDelegate,UICollectionViewDataSource {
     
-    public var nodataView:YKSectionNoDataView {
-        get {
-            let view = YKSectionNoDataView.init(frame: self.bounds)
-            view.reloadCallBack = {
-                self.refreshData(mode: .Header)
-            }
-            return view
+    private lazy var _nodataView:YKSectionNoDataView = {
+        let view = YKSectionNoDataView.init(frame: self.bounds)
+        view.reloadCallBack = {
+            self.refreshData(mode: .Header)
         }
-    }
+        return view
+    }()
     
     private lazy var datas:Array<YKSectionViewModelMainProtocol> = []
     
@@ -42,7 +40,10 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
     {
         self.delegate = self
         self.dataSource = self
+        self.alwaysBounceVertical = true
+        self.alwaysBounceHorizontal = false
         self.backgroundColor = .clear
+        self.addNoDateView()
         self.initData()
         self.register(UICollectionViewCell.classForCoder(), forCellWithReuseIdentifier: "UICollectionViewCell")
         self.register(UICollectionReusableView.classForCoder(), forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "UICollectionReusableView")
@@ -98,6 +99,17 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         }
     }
     
+    public func setNoDataViewTip(tip:String, font:UIFont)->Void {
+        self._nodataView.tipLabel.text = tip
+        self._nodataView.tipLabel.font = font
+    }
+    
+    public func setNoDataViewImage(image:UIImage?)->Void {
+        self._nodataView.tipImageView.image = image
+    }
+    
+    //MARK: -reloadData
+    
     public override func reloadData() {
         if self.endRefresh != nil {
             self.endRefresh!()
@@ -110,14 +122,14 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
             }
             if count <= 0 {
                 //add nodata
-                self.addSubview(self.nodataView)
+                self._nodataView.isHidden = false
             }else{
                 //remove nodataView
-                self.nodataView.removeFromSuperview()
+                self._nodataView.isHidden = true
             }
         }else{
             //add NoData
-            self.addSubview(self.nodataView)
+            self._nodataView.isHidden = false
         }
     }
     
@@ -155,36 +167,56 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         
         if kind == UICollectionView.elementKindSectionHeader {
             if let model = obj.yksc_registHeader?() {
-                let headerId = model.classId
-                if headerId.count > 0 {
-                    let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: headerId, for: indexPath)
-                    if headerView.conforms(to: YKSectionViewModelResuseProtocol.self) {
-                        let headerViewP = headerView as! YKSectionViewModelResuseProtocol
-                        if headerViewP.loadData?(obj, indexPath) == nil {
-                            #if DEBUG
-                            print("❌ \(headerView)未实现loadData：")
-                            #endif
+                var isShowHeaderFooter:Bool = true
+                if let isShowHeaderFooterP = obj.yksc_noDataShowHeaderFooter?() {
+                    isShowHeaderFooter = isShowHeaderFooterP
+                }
+                
+                
+                let num = obj.yksc_numberOfItem()
+                if (num > 0 || isShowHeaderFooter)  {
+                    let headerId = model.classId
+                    if headerId.count > 0 {
+                        let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: headerId, for: indexPath)
+                        if headerView.conforms(to: YKSectionViewModelResuseProtocol.self) {
+                            let headerViewP = headerView as! YKSectionViewModelResuseProtocol
+                            if headerViewP.loadData?(obj, indexPath) == nil {
+                                #if DEBUG
+                                print("❌ \(headerView)未实现loadData：")
+                                #endif
+                            }
+                            return headerView
                         }
-                        return headerView
                     }
+                }else {
+                    return collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "UICollectionReusableView", for: indexPath)
                 }
             }
         }
         
         if kind == UICollectionView.elementKindSectionFooter {
             if let model = obj.yksc_registFooter?() {
-                let footerId = model.classId
-                if footerId.count > 0 {
-                    let footerView = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: footerId, for: indexPath)
-                    if footerView.conforms(to: YKSectionViewModelResuseProtocol.self) {
-                        let headerViewP = footerView as! YKSectionViewModelResuseProtocol
-                        if headerViewP.loadData?(obj, indexPath) == nil {
-                            #if DEBUG
-                            print("❌ \(footerView)未实现loadData：")
-                            #endif
+                var isShowHeaderFooter:Bool = true
+                if let isShowHeaderFooterP = obj.yksc_noDataShowHeaderFooter?() {
+                    isShowHeaderFooter = isShowHeaderFooterP
+                }
+                let num = obj.yksc_numberOfItem()
+                if (num > 0 || isShowHeaderFooter)  {
+                    let footerId = model.classId
+                    if footerId.count > 0 {
+                        let footerView = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: footerId, for: indexPath)
+                        if footerView.conforms(to: YKSectionViewModelResuseProtocol.self) {
+                            let headerViewP = footerView as! YKSectionViewModelResuseProtocol
+                            if headerViewP.loadData?(obj, indexPath) == nil {
+                                #if DEBUG
+                                print("❌ \(footerView)未实现loadData：")
+                                #endif
+                            }
+                            return footerView
                         }
-                        return footerView
                     }
+                }else {
+                    return collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "UICollectionReusableView", for: indexPath)
                 }
             }
         }
@@ -203,8 +235,15 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
     public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
         let obj = self.datas[section]
         var size = CGSize(width: collectionView.bounds.size.width, height: 0)
-        if let sizeP = obj.yksc_sizeOfHeader?(width: collectionView.bounds.size.width) {
-            size = sizeP
+        let num = obj.yksc_numberOfItem()
+        var isShowHeaderFooter:Bool = true
+        if let isShowHeaderFooterP = obj.yksc_noDataShowHeaderFooter?() {
+            isShowHeaderFooter = isShowHeaderFooterP
+        }
+        if (num > 0 || isShowHeaderFooter)  {
+            if let sizeP = obj.yksc_sizeOfHeader?(width: collectionView.bounds.size.width) {
+                size = sizeP
+            }
         }
         return size
     }
@@ -212,8 +251,15 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
     public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForFooterInSection section: Int) -> CGSize {
         let obj = self.datas[section]
         var size = CGSize(width: collectionView.bounds.size.width, height: 0)
-        if let sizeP = obj.yksc_sizeOfFooter?(width: collectionView.bounds.size.width) {
-            size = sizeP
+        let num = obj.yksc_numberOfItem()
+        var isShowHeaderFooter:Bool = true
+        if let isShowHeaderFooterP = obj.yksc_noDataShowHeaderFooter?() {
+            isShowHeaderFooter = isShowHeaderFooterP
+        }
+        if (num > 0 || isShowHeaderFooter)  {
+            if let sizeP = obj.yksc_sizeOfFooter?(width: collectionView.bounds.size.width) {
+                size = sizeP
+            }
         }
         return size
     }
@@ -267,7 +313,7 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
     }
     
     private func addNoDateView()->Void {
-        
+        self.addSubview(self._nodataView)
     }
     
     private func createError(errorMsg:String)->Void
