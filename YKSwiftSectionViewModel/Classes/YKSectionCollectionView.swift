@@ -95,7 +95,12 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
                 if isReload {
                     self.reloadData()
                 }
+            } errrorCallBack: { error in
+                if self.errorCallBack != nil {
+                    self.errorCallBack!(error)
+                }
             }
+
         }
     }
     
