@@ -20,7 +20,9 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
             name: "YKSwiftSectionViewModel",
-            dependencies: []),
+            dependencies: [],
+	    resources:[
+ 		.process("ic_sectionvm_nodata_image.png"),],		),
         .testTarget(
             name: "YKSwiftSectionViewModelTests",
             dependencies: ["YKSwiftSectionViewModel"]),
