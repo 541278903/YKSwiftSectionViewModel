@@ -29,6 +29,7 @@ Pod::Spec.new do |s|
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
   s.ios.deployment_target = '9.0'
+  s.swift_versions = ['4.2', '5', '5.1', '5.2', '5.3', '5.4', '5.5']
 
   s.source_files = 'Sources/YKSwiftSectionViewModel/Classes/**/*'
   s.resources = "Sources/YKSwiftSectionViewModel/Assets/*.png"
