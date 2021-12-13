@@ -12,6 +12,8 @@
 
 ## 
 
+![插件示意图](image.png)
+
 ## Installation
 
 YKSwiftSectionViewModel is available through [CocoaPods](https://cocoapods.org). To install
