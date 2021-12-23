@@ -91,13 +91,17 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
     public func refreshData(mode:YKSectionViewModelRefreshMode)->Void
     {
         for obj in self.datas {
-            obj.yksc_beginToReloadData(mode: mode.rawValue) { isReload in
+            obj.yksc_beginToReloadData(mode: mode.rawValue) { [weak self] (isReload) in
                 if isReload {
-                    self.reloadData()
+                    if let strongself = self {
+                        strongself.reloadData()
+                    }
                 }
-            } errrorCallBack: { error in
-                if self.errorCallBack != nil {
-                    self.errorCallBack!(error)
+            } errrorCallBack: { [weak self] (error) in
+                if let strongself = self {
+                    if strongself.errorCallBack != nil {
+                        strongself.errorCallBack!(error)
+                    }
                 }
             }
 
@@ -289,11 +293,13 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
     
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let obj = self.datas[indexPath.section]
-        if obj.yksc_didSelectItem?(at: indexPath, callBack: { viewcontroller, type, animate in
-            guard let handleCallBack = self.handleViewController else {
-                return
+        if obj.yksc_didSelectItem?(at: indexPath, callBack: { [weak self] (viewcontroller, type, animate) in
+            if let strongself = self {
+                guard let handleCallBack = strongself.handleViewController else {
+                    return
+                }
+                handleCallBack(viewcontroller,type,animate)
             }
-            handleCallBack(viewcontroller,type,animate)
         }) == nil {
             
         }
