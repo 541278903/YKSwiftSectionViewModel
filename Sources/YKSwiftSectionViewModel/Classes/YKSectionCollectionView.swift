@@ -74,6 +74,12 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         }
     }
     
+    public func resetViewModels(datas:Array<YKSectionViewModelMainProtocol>) -> Void {
+        self.datas = datas
+        self.initData()
+        self.reloadData()
+    }
+    
     public func addSubViewModel(viewModel:YKSectionViewModelMainProtocol)->Void
     {
         self.datas.append(viewModel)
