@@ -36,8 +36,7 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func setupUI()->Void
-    {
+    private func setupUI() -> Void {
         self.delegate = self
         self.dataSource = self
         self.alwaysBounceVertical = true
@@ -50,17 +49,14 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         self.register(UICollectionReusableView.classForCoder(), forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: "UICollectionReusableView")
     }
     
-    private func bindData()->Void
-    {
+    private func bindData() -> Void {
         self.refreshData(mode: .Header)
     }
     
-    private func initData()->Void
-    {
+    private func initData() -> Void {
         for obj in self.datas {
             let models = obj.yksc_registItems()
             for model in models {
-//                let classP = NSClassFromString(model.className)
                 self.register(model.className, forCellWithReuseIdentifier: model.classId)
             }
             
@@ -80,21 +76,7 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         self.reloadData()
     }
     
-    public func addSubViewModel(viewModel:YKSectionViewModelMainProtocol)->Void
-    {
-        self.datas.append(viewModel)
-        self.initData()
-        self.reloadData()
-    }
-    
-    public func addSubViewModel(viewModel:YKSectionViewModelMainProtocol, atIndex:Int)->Void
-    {
-        self.datas.insert(viewModel, at: atIndex)
-        self.initData()
-        self.reloadData()
-    }
-    
-    public func refreshData(mode:YKSectionViewModelRefreshMode)->Void
+    public func refreshData(mode:YKSectionViewModelRefreshMode) -> Void
     {
         for obj in self.datas {
             obj.yksc_beginToReloadData(mode: mode.rawValue) { [weak self] (isReload) in
@@ -114,12 +96,12 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         }
     }
     
-    public func setNoDataViewTip(tip:String, font:UIFont)->Void {
+    public func setNoDataViewTip(tip:String, font:UIFont) -> Void {
         self._nodataView.tipLabel.text = tip
         self._nodataView.tipLabel.font = font
     }
     
-    public func setNoDataViewImage(image:UIImage?)->Void {
+    public func setNoDataViewImage(image:UIImage?) -> Void {
         self._nodataView.tipImageView.image = image
     }
     
@@ -312,8 +294,7 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
     }
     
     //MARK: -handleRouter
-    public func handleRouter(eventName:String, userInfo:Dictionary<String,Any>)->Bool
-    {
+    public func handleRouter(eventName:String, userInfo:Dictionary<String,Any>) -> Bool {
         var result = false
         
         for obj in self.datas {
@@ -329,12 +310,11 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         return result
     }
     
-    private func addNoDateView()->Void {
+    private func addNoDateView() ->Void {
         self.addSubview(self._nodataView)
     }
     
-    private func createError(errorMsg:String)->Void
-    {
+    private func createError(errorMsg:String) ->Void {
         let error = NSError.init(domain: "YKSwiftSectionViewModel", code: -1, userInfo: [
             NSLocalizedDescriptionKey:errorMsg,
             NSLocalizedFailureReasonErrorKey:errorMsg,
