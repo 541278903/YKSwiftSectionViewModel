@@ -8,12 +8,12 @@
 import Foundation
 import UIKit
 
-public enum YKSectionViewModelPushType:Int {
+@objc public enum YKSectionViewModelPushType:Int {
     case Push = 0
     case Present = 1
 }
 
-public enum YKSectionViewModelRefreshMode:Int {
+@objc public enum YKSectionViewModelRefreshMode:Int {
     case Header = 0
     case Footer = 1
 }
@@ -23,63 +23,71 @@ public enum YKSectionViewModelRefreshMode:Int {
     
     /// 获取当前section有多少item
     /// - Returns: 获取有多少item
-    func yksc_numberOfItem()->Int
+    func yksc_numberOfItem() -> Int
     
     /// 开始刷新Push
     /// - Parameters:
     ///   - mode: 刷新模式
     ///   - reloadCallBack: 刷新回调
     /// - Returns: 无
-    func yksc_beginToReloadData(mode:YKSectionViewModelRefreshMode.RawValue, reloadCallBack:@escaping ((Bool)->Void), errrorCallBack:@escaping ((Error)->Void))->Void;
+    func yksc_beginToReloadData(mode:YKSectionViewModelRefreshMode, reloadCallBack:@escaping (() -> Void), errrorCallBack:@escaping ((Error) -> Void)) -> Void;
     
     /// 获取当前行所需要的cellid
     /// - Parameter indexPath: 索引
     /// - Returns: Id
-    func yksc_idForItem(at indexPath:IndexPath)->String
+    func yksc_idForItem(at indexPath:IndexPath) -> String
     
     /// 注册cells
     /// - Returns: 所有cell的集合
-    func yksc_registItems()->Array<YKSectionResuseModel>
+    func yksc_registItems() -> Array<YKSectionResuseModel>
     
     /// 获取当前cell的尺寸
     /// - Parameters:
     ///   - width: 当前collectionview宽度
     ///   - atIndexPath: 索引
     /// - Returns: 尺寸
-    func yksc_sizeOfItem(with width:CGFloat, atIndexPath:IndexPath)->CGSize
+    func yksc_sizeOfItem(with width:CGFloat, atIndexPath:IndexPath) -> CGSize
     
     /// 注册当前section头部
     /// - Returns: 头部信息
-    @objc optional func yksc_registHeader()->YKSectionResuseModel
+    @objc optional func yksc_registHeader() -> Array<YKSectionResuseModel>
+    
+    /// 获取当前需要的header的Id
+    /// - Returns: sectionheader Id
+    @objc optional func yksc_idForHeader() -> String
     
     /// 没有数据时是否显示头部和底部
     /// - Returns: 是否显示默认不显示
-    @objc optional func yksc_noDataShowHeaderFooter()->Bool
+    @objc optional func yksc_noDataShowHeaderFooter() -> Bool
     
     /// 获取当前头部尺寸
     /// - Parameter width: 当前collectionview宽度
     /// - Returns: 尺寸
-    @objc optional func yksc_sizeOfHeader(width:CGFloat)->CGSize
+    @objc optional func yksc_sizeOfHeader(width:CGFloat) -> CGSize
+    
+    /// 获取当前需要的header的Id
+    /// - Returns: sectionheader Id
+    @objc optional func yksc_idForFooter() -> String
     
     /// 注册当前section底部
     /// - Returns: 底部信息
-    @objc optional func yksc_registFooter()->YKSectionResuseModel
+    @objc optional func yksc_registFooter() -> Array<YKSectionResuseModel>
     
     /// 获取当前底部尺寸
     /// - Parameter width: 当前collectionview宽度
     /// - Returns: 尺寸
-    @objc optional func yksc_sizeOfFooter(width:CGFloat)->CGSize
+    @objc optional func yksc_sizeOfFooter(width:CGFloat) -> CGSize
     
     /// 获取最小行间距
     /// - Returns: 距离
-    @objc optional func yksc_sectionMinimumLineSpacing()->CGFloat
+    @objc optional func yksc_sectionMinimumLineSpacing() -> CGFloat
     
     /// 获取最小列距离
     /// - Returns: 距离
-    @objc optional func yksc_sectionMinimumInteritemSpacing()->CGFloat
+    @objc optional func yksc_sectionMinimumInteritemSpacing() -> CGFloat
     
     /// 获取当前cell点击事件
-    @objc optional func yksc_didSelectItem(at indexPath:IndexPath, callBack:((_ viewcontroller:UIViewController, _ type:YKSectionViewModelPushType.RawValue , _ animate:Bool)->Void))
+    @objc optional func yksc_didSelectItem(at indexPath:IndexPath, callBack:((_ viewcontroller:UIViewController, _ type:YKSectionViewModelPushType , _ animate:Bool) -> Void))
     
     /// 获取响应内容触发机制
     /// - Parameters:
@@ -87,5 +95,5 @@ public enum YKSectionViewModelRefreshMode:Int {
     ///   - userInfo: 响应内容
     ///   - controllerEvent: 控制回调
     /// - Returns: 是否作出响应
-    @objc optional func yksc_handleRouterEvent(eventName:String, userInfo:Dictionary<String,Any>, controllerEvent:((_ viewcontroller:UIViewController, _ type:YKSectionViewModelPushType.RawValue, _ animate:Bool)->Void))->Bool
+    @objc optional func yksc_handleRouterEvent(eventName:String, userInfo:Dictionary<String,Any>, controllerEvent:((_ viewcontroller:UIViewController, _ type:YKSectionViewModelPushType, _ animate:Bool) -> Void)) -> Bool
 }
