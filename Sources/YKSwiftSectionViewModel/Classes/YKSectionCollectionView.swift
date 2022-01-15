@@ -82,6 +82,10 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
     
     public func refreshData(mode:YKSectionViewModelRefreshMode) -> Void
     {
+        if self.datas.count <= 0 {
+            self.reloadData()
+            return
+        }
         for obj in self.datas {
             obj.yksc_beginToReloadData(mode: mode) { [weak self] in
                 if let strongself = self {
