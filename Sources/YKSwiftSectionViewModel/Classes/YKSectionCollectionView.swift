@@ -11,8 +11,10 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
     
     private lazy var _nodataView:YKSectionNoDataView = {
         let view = YKSectionNoDataView.init(frame: self.bounds)
-        view.reloadCallBack = {
-            self.refreshData(mode: .Header)
+        view.reloadCallBack = { [weak self] in
+            if let strongself = self {
+                strongself.refreshData(mode: .Header)
+            }
         }
         return view
     }()
