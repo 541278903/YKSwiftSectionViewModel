@@ -88,11 +88,28 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
             self.reloadData()
             return
         }
-        for obj in self.datas {
-            obj.yksc_beginToReloadData(mode: mode) { [weak self] in
+        var objcs:[String] = []
+        
+        let reloadBlock = { [weak self] (obj:YKSectionViewModelMainProtocol) in
+            let objcName = "d\(Unmanaged.passUnretained(obj).toOpaque())"
+            objcs.remove(at: objcs.firstIndex(of: objcName)!)
+            
+            if objcs.count <= 0 {
                 if let strongself = self {
                     strongself.reloadData()
                 }
+            }
+        }
+        for obj in self.datas {
+            let objcName = "d\(Unmanaged.passUnretained(obj).toOpaque())"
+            objcs.append(objcName)
+            
+        }
+        
+        for obj in self.datas {
+            
+            obj.yksc_beginToReloadData(mode: mode) {
+                reloadBlock(obj)
             } errrorCallBack: { [weak self] (error) in
                 if let strongself = self {
                     if strongself.errorCallBack != nil {
@@ -100,7 +117,6 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
                     }
                 }
             }
-
         }
     }
     
@@ -285,7 +301,7 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
     
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let obj = self.datas[indexPath.section]
-        if obj.yksc_didSelectItem?(at: indexPath, callBack: { [weak self] (viewcontroller, type, animate) in
+        if obj.yksc_didSelectItem?(at: indexPath, collectionView: self, callBack: { [weak self] viewcontroller, type, animate in
             if let strongself = self {
                 guard let handleCallBack = strongself.handleViewController else {
                     return
@@ -305,7 +321,7 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
             guard let handleCallBack = self.handleViewController else {
                 return result
             }
-            if let resultP = obj.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo, controllerEvent: handleCallBack) {
+            if let resultP = obj.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo, collectionView: self, callBack: handleCallBack) {
                 result = (result || resultP)
             }
             
@@ -318,16 +334,13 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         self.addSubview(self._nodataView)
     }
     
-    private func createError(errorMsg:String) ->Void {
+    private func createError(errorMsg:String) ->NSError {
         let error = NSError.init(domain: "YKSwiftSectionViewModel", code: -1, userInfo: [
             NSLocalizedDescriptionKey:errorMsg,
             NSLocalizedFailureReasonErrorKey:errorMsg,
             NSLocalizedRecoverySuggestionErrorKey:"请检查内容",
         ])
-        guard let errorBlock = self.errorCallBack else {
-            return
-        }
-        errorBlock(error)
+        return error
     }
 
 }

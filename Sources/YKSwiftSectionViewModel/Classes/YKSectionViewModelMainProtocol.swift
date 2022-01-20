@@ -18,6 +18,11 @@ import UIKit
     case Footer = 1
 }
 
+@objc public enum YKSectionViewModelEndRefreshResult:Int {
+    case Success = 0
+    case Timeout = 1
+}
+
 @objc public protocol YKSectionViewModelMainProtocol
 {
     
@@ -87,7 +92,7 @@ import UIKit
     @objc optional func yksc_sectionMinimumInteritemSpacing() -> CGFloat
     
     /// 获取当前cell点击事件
-    @objc optional func yksc_didSelectItem(at indexPath:IndexPath, callBack:((_ viewcontroller:UIViewController, _ type:YKSectionViewModelPushType , _ animate:Bool) -> Void))
+    @objc optional func yksc_didSelectItem(at indexPath:IndexPath, collectionView:YKSectionCollectionView, callBack:((_ viewcontroller:UIViewController, _ type:YKSectionViewModelPushType , _ animate:Bool) -> Void))
     
     /// 获取响应内容触发机制
     /// - Parameters:
@@ -95,5 +100,6 @@ import UIKit
     ///   - userInfo: 响应内容
     ///   - controllerEvent: 控制回调
     /// - Returns: 是否作出响应
-    @objc optional func yksc_handleRouterEvent(eventName:String, userInfo:Dictionary<String,Any>, controllerEvent:((_ viewcontroller:UIViewController, _ type:YKSectionViewModelPushType, _ animate:Bool) -> Void)) -> Bool
+    @objc optional func yksc_handleRouterEvent(eventName:String, userInfo:Dictionary<String,Any>, collectionView:YKSectionCollectionView, callBack:((_ viewcontroller:UIViewController, _ type:YKSectionViewModelPushType, _ animate:Bool) -> Void)) -> Bool
+    
 }
