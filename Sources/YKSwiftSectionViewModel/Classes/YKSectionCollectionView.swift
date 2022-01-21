@@ -8,6 +8,9 @@
 import UIKit
 
 public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateFlowLayout,UICollectionViewDelegate,UICollectionViewDataSource {
+
+    private lazy var loading:Bool = false
+    private var objcs:[String] = []
     
     private lazy var _nodataView:YKSectionNoDataView = {
         let view = YKSectionNoDataView.init(frame: self.bounds)
@@ -21,15 +24,18 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
     
     private lazy var datas:Array<YKSectionViewModelMainProtocol> = []
     
+    private var outTime:Double = 15
+    
     public var errorCallBack:((_ error:Error)->Void)?
     
     public var handleViewController:((_ controller:UIViewController, _ type:YKSectionViewModelPushType, _ animated:Bool)->Void)?
     
     public var endRefresh:(()->Void)?
     
-    public init(frame: CGRect,datas:Array<YKSectionViewModelMainProtocol>) {
+    public init(frame: CGRect, datas:Array<YKSectionViewModelMainProtocol>, outime:TimeInterval = 15) {
         super.init(frame: frame, collectionViewLayout: UICollectionViewFlowLayout.init())
         self.datas = datas
+        self.outTime = outime
         self.setupUI()
         self.bindData()
     }
@@ -84,25 +90,41 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
     
     public func refreshData(mode:YKSectionViewModelRefreshMode) -> Void
     {
+        if self.loading {
+            print("已经在加载中")
+            return
+        }else {
+            print("开始加载")
+            self.loading = true
+            self.startTimer()
+        }
         if self.datas.count <= 0 {
+            self.loading = false
+            self.stopTimer()
             self.reloadData()
             return
         }
-        var objcs:[String] = []
         
         let reloadBlock = { [weak self] (obj:YKSectionViewModelMainProtocol) in
             let objcName = "d\(Unmanaged.passUnretained(obj).toOpaque())"
-            objcs.remove(at: objcs.firstIndex(of: objcName)!)
-            
-            if objcs.count <= 0 {
-                if let strongself = self {
-                    strongself.reloadData()
+            if let strongself = self {
+                if strongself.objcs.count > 0 {
+                    strongself.objcs.remove(at: strongself.objcs.firstIndex(of: objcName)!)
+                }
+                if strongself.objcs.count <= 0 {
+                    if strongself.loading {
+                        strongself.loading = false
+                        strongself.stopTimer()
+                        strongself.reloadData()
+                    }else {
+                        strongself.reloadData()
+                    }
                 }
             }
         }
         for obj in self.datas {
             let objcName = "d\(Unmanaged.passUnretained(obj).toOpaque())"
-            objcs.append(objcName)
+            self.objcs.append(objcName)
             
         }
         
@@ -151,6 +173,26 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         }else{
             //add NoData
             self._nodataView.isHidden = false
+        }
+    }
+    
+    //MARK: private func
+    
+    
+    private func startTimer() -> Void {
+        self.perform(#selector(outTimeTodo), with: nil, afterDelay: self.outTime)
+    }
+    
+    private func stopTimer() -> Void {
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(self.outTimeTodo), object: nil)
+    }
+    
+    @objc private func outTimeTodo() -> Void {
+        self.loading = false
+        self.objcs.removeAll()
+        self.reloadData()
+        if let block = self.errorCallBack {
+            block(self.createError(errorMsg: "加载超时"))
         }
     }
     
