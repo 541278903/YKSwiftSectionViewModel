@@ -24,18 +24,19 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
     
     private lazy var datas:Array<YKSectionViewModelMainProtocol> = []
     
-    private var outTime:Double = 15
+    public var outTime:Double = 15
     
-    public var errorCallBack:((_ error:Error)->Void)?
+    public var errorCallBack:((_ error:Error) -> Void)?
     
-    public var handleViewController:((_ controller:UIViewController, _ type:YKSectionViewModelPushType, _ animated:Bool)->Void)?
+    public var handleViewController:((_ controller:UIViewController, _ type:YKSectionViewModelPushType, _ animated:Bool) -> Void)?
     
-    public var endRefresh:(()->Void)?
+    public var endRefresh:(() -> Void)?
     
-    public init(frame: CGRect, datas:Array<YKSectionViewModelMainProtocol>, outime:TimeInterval = 15) {
+    public var loadingCallBack:((_ isLoading:Bool) -> Void)?
+    
+    public init(frame: CGRect, datas:Array<YKSectionViewModelMainProtocol>) {
         super.init(frame: frame, collectionViewLayout: UICollectionViewFlowLayout.init())
         self.datas = datas
-        self.outTime = outime
         self.setupUI()
         self.bindData()
     }
@@ -58,7 +59,8 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
     }
     
     private func bindData() -> Void {
-        self.refreshData(mode: .Header)
+        //不再初始化的时候进行刷新数据
+//        self.refreshData(mode: .Header)
     }
     
     private func initData() -> Void {
@@ -91,15 +93,21 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
     public func refreshData(mode:YKSectionViewModelRefreshMode) -> Void
     {
         if self.loading {
-            print("已经在加载中")
+            //已经加载中
             return
         }else {
-            print("开始加载")
+            //已经加载中
             self.loading = true
+            if let callBack = self.loadingCallBack {
+                callBack(true)
+            }
             self.startTimer()
         }
         if self.datas.count <= 0 {
             self.loading = false
+            if let callBack = self.loadingCallBack {
+                callBack(false)
+            }
             self.stopTimer()
             self.reloadData()
             return
@@ -114,6 +122,9 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
                 if strongself.objcs.count <= 0 {
                     if strongself.loading {
                         strongself.loading = false
+                        if let callBack = strongself.loadingCallBack {
+                            callBack(false)
+                        }
                         strongself.stopTimer()
                         strongself.reloadData()
                     }else {
@@ -189,6 +200,9 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
     
     @objc private func outTimeTodo() -> Void {
         self.loading = false
+        if let callBack = self.loadingCallBack {
+            callBack(false)
+        }
         self.objcs.removeAll()
         self.reloadData()
         if let block = self.errorCallBack {
