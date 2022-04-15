@@ -23,7 +23,7 @@ public class YKSectionTableView: UITableView,UITableViewDelegate,UITableViewData
         return view
     }()
     
-    private lazy var datas:Array<YKSectionTableViewProtocol> = []
+    private lazy var datas:[YKSectionTableViewProtocol] = []
     
     public var outTime:Double = 15
     

@@ -43,7 +43,7 @@ import Foundation
     
     /// 注册cells
     /// - Returns: 所有cell的集合
-    func yksc_registItems() -> Array<YKSectionResuseModel>
+    func yksc_registItems() -> [YKSectionResuseModel]
     
     /// 没有数据时是否显示头部和底部
     /// - Returns: 是否显示默认不显示
@@ -51,7 +51,7 @@ import Foundation
     
     /// 注册当前section头部
     /// - Returns: 头部信息
-    @objc optional func yksc_registHeader() -> Array<YKSectionResuseModel>
+    @objc optional func yksc_registHeader() -> [YKSectionResuseModel]
     
     /// 获取当前需要的header的Id
     /// - Returns: sectionheader Id
@@ -59,7 +59,7 @@ import Foundation
     
     /// 注册当前section底部
     /// - Returns: 底部信息
-    @objc optional func yksc_registFooter() -> Array<YKSectionResuseModel>
+    @objc optional func yksc_registFooter() -> [YKSectionResuseModel]
     
     /// 获取当前需要的header的Id
     /// - Returns: sectionheader Id

@@ -22,7 +22,7 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         return view
     }()
     
-    private lazy var datas:Array<YKSectionCollectionViewProtocol> = []
+    private lazy var datas:[YKSectionCollectionViewProtocol] = []
     
     public var outTime:Double = 15
     
