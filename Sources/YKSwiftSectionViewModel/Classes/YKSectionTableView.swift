@@ -130,7 +130,7 @@ public class YKSectionTableView: UITableView,UITableViewDelegate,UITableViewData
             guard let weakSelf = self else { return }
             let objcName = "d\(Unmanaged.passUnretained(obj).toOpaque())"
             weakSelf.isNoData = true
-            weakSelf.isNoMoreData = weakSelf.isNoMoreData || isNoMoreData
+            weakSelf.isNoMoreData = weakSelf.isNoMoreData && isNoMoreData
             if weakSelf.objcs.count > 0 {
                 weakSelf.objcs.remove(at: weakSelf.objcs.firstIndex(of: objcName)!)
             }

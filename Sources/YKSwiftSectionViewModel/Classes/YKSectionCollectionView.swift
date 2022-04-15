@@ -126,7 +126,7 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
             guard let weakself = self else { return }
             let objcName = "d\(Unmanaged.passUnretained(obj).toOpaque())"
             weakself.isNoData = true
-            weakself.isNoMoreData = weakself.isNoMoreData || isNoMoreData
+            weakself.isNoMoreData = weakself.isNoMoreData && isNoMoreData
             if weakself.objcs.count > 0 {
                 weakself.objcs.remove(at: weakself.objcs.firstIndex(of: objcName)!)
             }
