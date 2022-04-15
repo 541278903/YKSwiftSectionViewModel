@@ -30,15 +30,24 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
     
     public var handleViewController:((_ controller:UIViewController, _ type:YKSectionViewModelPushType, _ animated:Bool) -> Void)?
     
-    public var endRefresh:(() -> Void)?
+    public var endRefresh:((_ isNoMoreData:Bool) -> Void)?
     
     public var loadingCallBack:((_ isLoading:Bool) -> Void)?
     
-    public init(frame: CGRect, datas:Array<YKSectionCollectionViewProtocol>) {
-        super.init(frame: frame, collectionViewLayout: UICollectionViewFlowLayout.init())
+    private var isNoData:Bool = false
+    
+    private var isNoMoreData:Bool = false
+    
+    
+    public init(frame: CGRect, layout:UICollectionViewLayout, datas:[YKSectionCollectionViewProtocol]) {
+        super.init(frame: frame, collectionViewLayout: layout)
         self.datas = datas
         self.setupUI()
         self.bindData()
+    }
+    
+    public convenience init(frame: CGRect, datas:[YKSectionCollectionViewProtocol]) {
+        self.init(frame: frame, layout: UICollectionViewFlowLayout.init(), datas: datas)
     }
     
     required init?(coder: NSCoder) {
@@ -84,7 +93,7 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         }
     }
     
-    public func resetViewModels(datas:Array<YKSectionCollectionViewProtocol>) -> Void {
+    public func resetViewModels(datas:[YKSectionCollectionViewProtocol]) -> Void {
         self.datas = datas
         self.initData()
         self.reloadData()
@@ -113,23 +122,24 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
             return
         }
         
-        let reloadBlock = { [weak self] (obj:YKSectionCollectionViewProtocol) in
+        let reloadBlock = { [weak self] (obj:YKSectionCollectionViewProtocol, isNoMoreData:Bool) in
+            guard let weakself = self else { return }
             let objcName = "d\(Unmanaged.passUnretained(obj).toOpaque())"
-            if let strongself = self {
-                if strongself.objcs.count > 0 {
-                    strongself.objcs.remove(at: strongself.objcs.firstIndex(of: objcName)!)
-                }
-                if strongself.objcs.count <= 0 {
-                    if strongself.loading {
-                        strongself.loading = false
-                        if let callBack = strongself.loadingCallBack {
-                            callBack(false)
-                        }
-                        strongself.stopTimer()
-                        strongself.reloadData()
-                    }else {
-                        strongself.reloadData()
+            weakself.isNoData = true
+            weakself.isNoMoreData = weakself.isNoMoreData || isNoMoreData
+            if weakself.objcs.count > 0 {
+                weakself.objcs.remove(at: weakself.objcs.firstIndex(of: objcName)!)
+            }
+            if weakself.objcs.count <= 0 {
+                if weakself.loading {
+                    weakself.loading = false
+                    if let callBack = weakself.loadingCallBack {
+                        callBack(false)
                     }
+                    weakself.stopTimer()
+                    weakself.reloadData()
+                }else {
+                    weakself.reloadData()
                 }
             }
         }
@@ -140,16 +150,13 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         }
         
         for obj in self.datas {
-            
-            obj.yksc_beginToReloadData(mode: mode) {
-                reloadBlock(obj)
-            } errrorCallBack: { [weak self] (error) in
-                if let strongself = self {
-                    if strongself.errorCallBack != nil {
-                        strongself.errorCallBack!(error)
-                    }
-                }
+            obj.yksc_beginToReloadData(mode: mode) { isNoMoreData in
+                reloadBlock(obj,isNoMoreData)
+            } errrorCallBack: { [weak self] error in
+                guard let weakSelf = self else { return }
+                weakSelf.errorCallBack!(error)
             }
+
         }
     }
     
@@ -166,9 +173,10 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
     
     public override func reloadData() {
         if self.endRefresh != nil {
-            self.endRefresh!()
+            self.endRefresh!(self.isNoData)
         }
         super.reloadData()
+        self._nodataView.isShowNoData(noData: self.isNoData)
         if self.datas.count >= 0 {
             var count:Int = 0
             for obj in self.datas {
@@ -239,7 +247,7 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
                             let headerViewP = headerView as! YKSectionViewModelResuseProtocol
                             if headerViewP.loadDataWithIndexPath?(obj, indexPath) == nil {
                                 #if DEBUG
-                                print("❌ \(headerView)未实现loadData：")
+                                print("❌ \(headerView)未实现loadDataWithIndexPath：")
                                 #endif
                             }
                         }else {
@@ -269,7 +277,7 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
                             let headerViewP = footerView as! YKSectionViewModelResuseProtocol
                             if headerViewP.loadDataWithIndexPath?(obj, indexPath) == nil {
                                 #if DEBUG
-                                print("❌ \(footerView)未实现loadData：")
+                                print("❌ \(footerView)未实现loadDataWithIndexPath：")
                                 #endif
                             }
                         }else {
@@ -403,7 +411,7 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
     }
     
     private func createError(errorMsg:String) ->NSError {
-        let error = NSError.init(domain: "YKSwiftSectionViewModel", code: -1, userInfo: [
+        let error = NSError.init(domain: "yk.swift.scetionCollectionView", code: -1, userInfo: [
             NSLocalizedDescriptionKey:errorMsg,
             NSLocalizedFailureReasonErrorKey:errorMsg,
             NSLocalizedRecoverySuggestionErrorKey:"请检查内容",

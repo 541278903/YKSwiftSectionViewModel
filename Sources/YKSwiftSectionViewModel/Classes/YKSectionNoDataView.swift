@@ -61,6 +61,12 @@ public class YKSectionNoDataView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    public func isShowNoData(noData:Bool) -> Void {
+        self.tipLabel.isHidden = !noData
+        self.tipImageView.isHidden = !noData
+        self.reloadButton.isHidden = !noData
+    }
+    
 
     /*
     // Only override draw() if you perform custom drawing.

@@ -31,15 +31,23 @@ public class YKSectionTableView: UITableView,UITableViewDelegate,UITableViewData
     
     public var handleViewController:((_ controller:UIViewController, _ type:YKSectionViewModelPushType, _ animated:Bool) -> Void)?
     
-    public var endRefresh:(() -> Void)?
+    public var endRefresh:((_ isNoMoreData:Bool) -> Void)?
     
     public var loadingCallBack:((_ isLoading:Bool) -> Void)?
     
-    public init(frame: CGRect, datas:Array<YKSectionTableViewProtocol>) {
+    private var isNoData:Bool = false
+    
+    private var isNoMoreData:Bool = false
+    
+    public init(frame:CGRect, style:UITableView.Style, datas:[YKSectionTableViewProtocol]) {
         super.init(frame: frame, style: .grouped)
         self.datas = datas
         self.setupUI()
         self.bindData()
+    }
+    
+    public convenience init(frame: CGRect, datas:[YKSectionTableViewProtocol]) {
+        self.init(frame: frame, style: .grouped, datas: datas)
     }
     
     required init?(coder: NSCoder) {
@@ -47,6 +55,8 @@ public class YKSectionTableView: UITableView,UITableViewDelegate,UITableViewData
     }
     
     private func setupUI() -> Void {
+        self.isNoData = false
+        self.isNoMoreData = false
         self.delegate = self
         self.dataSource = self
         self.alwaysBounceVertical = true
@@ -88,14 +98,13 @@ public class YKSectionTableView: UITableView,UITableViewDelegate,UITableViewData
         }
     }
     
-    public func resetViewModels(datas:Array<YKSectionTableViewProtocol>) -> Void {
+    public func resetViewModels(datas:[YKSectionTableViewProtocol]) -> Void {
         self.datas = datas
         self.initData()
         self.reloadData()
     }
     
-    public func refreshData(mode:YKSectionViewModelRefreshMode) -> Void
-    {
+    public func refreshData(mode:YKSectionViewModelRefreshMode) -> Void {
         if self.loading {
             //已经加载中
             return
@@ -117,23 +126,24 @@ public class YKSectionTableView: UITableView,UITableViewDelegate,UITableViewData
             return
         }
         
-        let reloadBlock = { [weak self] (obj:YKSectionTableViewProtocol) in
+        let reloadBlock = { [weak self] (obj:YKSectionTableViewProtocol, isNoMoreData:Bool) in
+            guard let weakSelf = self else { return }
             let objcName = "d\(Unmanaged.passUnretained(obj).toOpaque())"
-            if let strongself = self {
-                if strongself.objcs.count > 0 {
-                    strongself.objcs.remove(at: strongself.objcs.firstIndex(of: objcName)!)
-                }
-                if strongself.objcs.count <= 0 {
-                    if strongself.loading {
-                        strongself.loading = false
-                        if let callBack = strongself.loadingCallBack {
-                            callBack(false)
-                        }
-                        strongself.stopTimer()
-                        strongself.reloadData()
-                    }else {
-                        strongself.reloadData()
+            weakSelf.isNoData = true
+            weakSelf.isNoMoreData = weakSelf.isNoMoreData || isNoMoreData
+            if weakSelf.objcs.count > 0 {
+                weakSelf.objcs.remove(at: weakSelf.objcs.firstIndex(of: objcName)!)
+            }
+            if weakSelf.objcs.count <= 0 {
+                if weakSelf.loading {
+                    weakSelf.loading = false
+                    if let callBack = weakSelf.loadingCallBack {
+                        callBack(false)
                     }
+                    weakSelf.stopTimer()
+                    weakSelf.reloadData()
+                }else {
+                    weakSelf.reloadData()
                 }
             }
         }
@@ -145,14 +155,11 @@ public class YKSectionTableView: UITableView,UITableViewDelegate,UITableViewData
         
         for obj in self.datas {
             
-            obj.yksc_beginToReloadData(mode: mode) {
-                reloadBlock(obj)
-            } errrorCallBack: { [weak self] (error) in
-                if let strongself = self {
-                    if strongself.errorCallBack != nil {
-                        strongself.errorCallBack!(error)
-                    }
-                }
+            obj.yksc_beginToReloadData(mode: mode) { isNoMoreData in
+                reloadBlock(obj,isNoMoreData)
+            } errrorCallBack: { [weak self] error in
+                guard let weakSelf = self else { return }
+                weakSelf.errorCallBack!(error)
             }
         }
     }
@@ -170,10 +177,9 @@ public class YKSectionTableView: UITableView,UITableViewDelegate,UITableViewData
     //MARK: -reloadData
     
     public override func reloadData() {
-        if self.endRefresh != nil {
-            self.endRefresh!()
-        }
+        self.endRefresh?(self.isNoData)
         super.reloadData()
+        self._nodataView.isShowNoData(noData: self.isNoData)
         if self.datas.count >= 0 {
             var count:Int = 0
             for obj in self.datas {
