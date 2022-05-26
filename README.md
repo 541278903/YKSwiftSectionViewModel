@@ -57,26 +57,26 @@ $ pod install
         }
         
         //方法为结束刷新时候的动作 用户可根据自己的情况选择结束顶部和底部的刷新动画（笔者内容已经动态调用了reloadData，用户无需自行调用）
-        view.endRefresh = { [weak self] isNoMoreData in
+        view.toSetEndRefresh { [weak self] isNoMoreData in
             YKSwiftAlertCenter.dissLoading()
             if let strongself = self {
                 strongself.collectionView.headerEndRefresh()
                 strongself.collectionView.footerEndRefresh(noMorData: false)
             }
-            
         }
         
         //方法为结束刷新时候进行了错误的报告，内部为笔者自定义的弹窗，用户可根据自己项目进行错误处理
-        view.errorCallBack = { error in
+        view.toSetErrorCallBack { error in
             YKSwiftAlertCenter.showMessage(message: error.localizedDescription)
         }
         
         //（重点）此方法为内部响应的操作，传递出来控制器进行分别的push或present出来
-        view.handleViewController = { [weak self] vc,type,animate in
+        view.toSetHandleViewController { [weak self] controller, type, animated in
+            guard let weakself = self else { return }
             if type == .Push {
-                self!.navigationController?.pushViewController(vc, animated: animate)
+                weakself.navigationController?.pushViewController(controller, animated: animated)
             }else if type == .Present {
-                self!.present(vc, animated: animate, completion: nil)
+                weakself.present(controller, animated: animated, completion: nil)
             }
         }
         return view
@@ -98,7 +98,7 @@ class ScTestViewModel: YKSectionViewModelMainProtocol {
     }
     
     //  （必须实现） 当前section获取数据源（网络请求等延时操作）
-    func yksc_beginToReloadData(mode: YKSectionViewModelRefreshMode.RawValue, reloadCallBack: @escaping ((Bool) -> Void), errrorCallBack: @escaping ((Error) -> Void)) {
+    func yksc_beginToReloadData(mode: YKSectionViewModelRefreshMode.RawValue, reloadCallBack: @escaping ((Bool) -> Void), errorCallBack: @escaping ((Error) -> Void)) {
        if mode == YKSectionViewModelRefreshMode.Header.rawValue {
            self.count += 5;
        }else if mode == YKSectionViewModelRefreshMode.Footer.rawValue {
@@ -107,7 +107,7 @@ class ScTestViewModel: YKSectionViewModelMainProtocol {
                NSLocalizedFailureReasonErrorKey:"错误",
                NSLocalizedRecoverySuggestionErrorKey:"请检查内容",
            ])
-           errrorCallBack(error)
+           errorCallBack(error)
        }
        reloadCallBack(true)
     }

@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'YKSwiftSectionViewModel'
-  s.version          = '1.0.0'
+  s.version          = '1.0.1'
   s.summary          = 'YKSwiftSectionViewModel'
 
 # This description is used to generate tags and improve search results.

@@ -27,13 +27,13 @@ public class YKSectionTableView: UITableView,UITableViewDelegate,UITableViewData
     
     public var outTime:Double = 15
     
-    public var errorCallBack:((_ error:Error) -> Void)?
+    private var errorCallBack:((_ error:Error) -> Void)?
     
-    public var handleViewController:((_ controller:UIViewController, _ type:YKSectionViewModelPushType, _ animated:Bool) -> Void)?
+    private var handleViewController:((_ controller:UIViewController, _ type:YKSectionViewModelPushType, _ animated:Bool) -> Void)?
     
-    public var endRefresh:((_ isNoMoreData:Bool) -> Void)?
+    private var endRefresh:((_ isNoMoreData:Bool) -> Void)?
     
-    public var loadingCallBack:((_ isLoading:Bool) -> Void)?
+    private var loadingCallBack:((_ isLoading:Bool) -> Void)?
     
     private var isNoData:Bool = false
     
@@ -157,7 +157,7 @@ public class YKSectionTableView: UITableView,UITableViewDelegate,UITableViewData
             
             obj.yksc_beginToReloadData(mode: mode) { isNoMoreData in
                 reloadBlock(obj,isNoMoreData)
-            } errrorCallBack: { [weak self] error in
+            } errorCallBack: { [weak self] error in
                 guard let weakSelf = self else { return }
                 weakSelf.errorCallBack!(error)
             }
@@ -172,6 +172,48 @@ public class YKSectionTableView: UITableView,UITableViewDelegate,UITableViewData
     public func setNoDataViewImage(image:UIImage?) -> Void {
         self._nodataView.tipImageView.image = image
     }
+    
+    public func toSetErrorCallBack(errorCallBack:@escaping (_ error:Error) -> Void) {
+        if self.errorCallBack == nil {
+            self.errorCallBack = errorCallBack
+        }else {
+            #if DEBUG
+            print("❌ errorCallBack已设置，请勿重新设置")
+            #endif
+        }
+    }
+    
+    public func toSetHandleViewController(handleViewController:@escaping ((_ controller:UIViewController, _ type:YKSectionViewModelPushType, _ animated:Bool) -> Void)) {
+        if self.handleViewController == nil {
+            self.handleViewController = handleViewController
+        }else {
+            #if DEBUG
+            print("❌ handleViewController已设置，请勿重新设置")
+            #endif
+        }
+    }
+    
+    public func toSetEndRefresh(endRefresh:@escaping ((_ isNoMoreData:Bool) -> Void)) {
+        if self.endRefresh == nil {
+            self.endRefresh = endRefresh
+        }else {
+            #if DEBUG
+            print("❌ endRefresh已设置，请勿重新设置")
+            #endif
+        }
+    }
+    
+    public func toSetLoadingCallBack(loadingCallBack:@escaping ((_ isLoading:Bool) -> Void)) {
+        if self.loadingCallBack == nil {
+            self.loadingCallBack = loadingCallBack
+        }else {
+            #if DEBUG
+            print("❌ loadingCallBack已设置，请勿重新设置")
+            #endif
+        }
+    }
+    
+    
     
     
     //MARK: -reloadData

@@ -34,7 +34,7 @@ import Foundation
     ///   - mode: 刷新模式
     ///   - reloadCallBack: 刷新回调
     /// - Returns: 无
-    func yksc_beginToReloadData(mode:YKSectionViewModelRefreshMode, reloadCallBack:@escaping ((_ isNoMoreData:Bool) -> Void), errrorCallBack:@escaping ((Error) -> Void)) -> Void;
+    func yksc_beginToReloadData(mode:YKSectionViewModelRefreshMode, reloadCallBack:@escaping ((_ isNoMoreData:Bool) -> Void), errorCallBack:@escaping ((Error) -> Void)) -> Void;
     
     /// 获取当前行所需要的cellid
     /// - Parameter indexPath: 索引
