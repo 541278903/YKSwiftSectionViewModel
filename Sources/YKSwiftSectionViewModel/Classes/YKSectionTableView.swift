@@ -35,8 +35,6 @@ public class YKSectionTableView: UITableView,UITableViewDelegate,UITableViewData
     
     private var loadingCallBack:((_ isLoading:Bool) -> Void)?
     
-    private var isNoData:Bool = false
-    
     private var isNoMoreData:Bool = false
     
     public init(frame:CGRect, style:UITableView.Style, datas:[YKSectionTableViewProtocol]) {
@@ -55,7 +53,6 @@ public class YKSectionTableView: UITableView,UITableViewDelegate,UITableViewData
     }
     
     private func setupUI() -> Void {
-        self.isNoData = false
         self.isNoMoreData = false
         self.delegate = self
         self.dataSource = self
@@ -105,6 +102,10 @@ public class YKSectionTableView: UITableView,UITableViewDelegate,UITableViewData
     }
     
     public func refreshData(mode:YKSectionViewModelRefreshMode) -> Void {
+        
+        self.isNoMoreData = false
+        self._nodataView.isShowNoData(noData: false)
+        
         if self.loading {
             //已经加载中
             return
@@ -129,7 +130,6 @@ public class YKSectionTableView: UITableView,UITableViewDelegate,UITableViewData
         let reloadBlock = { [weak self] (obj:YKSectionTableViewProtocol, isNoMoreData:Bool) in
             guard let weakSelf = self else { return }
             let objcName = "d\(Unmanaged.passUnretained(obj).toOpaque())"
-            weakSelf.isNoData = true
             weakSelf.isNoMoreData = weakSelf.isNoMoreData && isNoMoreData
             if weakSelf.objcs.count > 0 {
                 weakSelf.objcs.remove(at: weakSelf.objcs.firstIndex(of: objcName)!)
@@ -219,9 +219,9 @@ public class YKSectionTableView: UITableView,UITableViewDelegate,UITableViewData
     //MARK: -reloadData
     
     public override func reloadData() {
-        self.endRefresh?(self.isNoData)
+        self.endRefresh?(self.isNoMoreData)
         super.reloadData()
-        self._nodataView.isShowNoData(noData: self.isNoData)
+        self._nodataView.isShowNoData(noData: self.isNoMoreData)
         if self.datas.count >= 0 {
             var count:Int = 0
             for obj in self.datas {

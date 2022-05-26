@@ -23,7 +23,9 @@ public class YKSectionNoDataView: UIView {
     
     public let tipImageView:UIImageView = {
         let imageView = UIImageView.init(frame: CGRect(x: 0, y: 0, width: 0, height: 0))
-        imageView.image = UIImage(named: "ic_sectionvm_nodata_image")
+        let bundle = Bundle(for: YKSectionNoDataView.self)
+        let url = bundle.path(forResource: "ic_sectionvm_nodata_image", ofType: "png") ?? "ic_sectionvm_nodata_image.png"
+        imageView.image = UIImage.init(contentsOfFile: url)
         return imageView
     }()
     
@@ -35,6 +37,11 @@ public class YKSectionNoDataView: UIView {
         return button
     }()
     
+    private let loadingView:UIView = {
+        let view = UIView.init()
+        return view
+    }()
+    
     public override init(frame: CGRect) {
         super.init(frame: frame)
         self.backgroundColor = .white
@@ -42,26 +49,28 @@ public class YKSectionNoDataView: UIView {
         tipLabel.frame = CGRect(x: 0, y: tipImageView.frame.maxY + 30, width: self.bounds.size.width, height: 30)
         reloadButton.frame = CGRect(x: (self.bounds.size.width - 100)/2, y: tipLabel.frame.maxY + 10, width: 100, height: 30)
         reloadButton.addTarget(self, action: #selector(reloadClick(sender:)), for: .touchUpInside)
+        loadingView.center = self.center
         self.addSubview(tipLabel)
         self.addSubview(tipImageView)
         self.addSubview(reloadButton)
     }
     
-    @objc private func reloadClick(sender:UIButton)->Void {
+    @objc private func reloadClick(sender:UIButton) {
         if self.reloadCallBack != nil {
             self.reloadCallBack!()
         }
     }
     
-    internal func setHidden(hidden:Bool)->Void {
+    internal func setHidden(hidden:Bool) {
         self.isHidden = hidden
     }
+    
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    public func isShowNoData(noData:Bool) -> Void {
+    internal func isShowNoData(noData:Bool) {
         self.tipLabel.isHidden = !noData
         self.tipImageView.isHidden = !noData
         self.reloadButton.isHidden = !noData
