@@ -185,7 +185,7 @@ class ScTestViewModel: YKSectionViewModelMainProtocol {
 ```swift
 import YKSwiftSectionViewModel
 
-class ScTest2Cell: UICollectionViewCell,YKSectionViewModelResuseProtocol {
+class ScTest2Cell: YKSectionCollectionViewCell,YKSectionViewModelResuseProtocol {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -208,7 +208,7 @@ class ScTest2Cell: UICollectionViewCell,YKSectionViewModelResuseProtocol {
 ```swift
 import YKSwiftSectionViewModel
 
-class SCTestHeaderView: UICollectionReusableView,YKSectionViewModelResuseProtocol {
+class SCTestHeaderView: YKSectionCollectionHeaderFooterView,YKSectionViewModelResuseProtocol {
     
     override init(frame: CGRect) {
         super.init(frame: frame)

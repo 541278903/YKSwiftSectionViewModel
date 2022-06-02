@@ -20,12 +20,12 @@ import UIKit
     /// 获取当前头部尺寸
     /// - Parameter width: 当前collectionview宽度
     /// - Returns: 尺寸
-    @objc optional func yksc_sizeOfHeader(width:CGFloat) -> CGSize
+    @objc optional func yksc_sizeOfHeader(with width:CGFloat) -> CGSize
     
     /// 获取当前底部尺寸
     /// - Parameter width: 当前collectionview宽度
     /// - Returns: 尺寸
-    @objc optional func yksc_sizeOfFooter(width:CGFloat) -> CGSize
+    @objc optional func yksc_sizeOfFooter(with width:CGFloat) -> CGSize
     
     /// 获取最小行间距
     /// - Returns: 距离
@@ -45,5 +45,5 @@ import UIKit
     ///   - userInfo: 响应内容
     ///   - controllerEvent: 控制回调
     /// - Returns: 是否作出响应
-    @objc optional func yksc_handleRouterEvent(eventName:String, userInfo:Dictionary<String,Any>, collectionView:YKSectionCollectionView, callBack:((_ viewcontroller:UIViewController, _ type:YKSectionViewModelPushType, _ animate:Bool) -> Void)) -> Bool
+    @objc optional func yksc_handleRouterEvent(eventName:String, userInfo:[String:Any], collectionView:YKSectionCollectionView, callBack:((_ viewcontroller:UIViewController, _ type:YKSectionViewModelPushType, _ animate:Bool) -> Void)) -> Bool
 }

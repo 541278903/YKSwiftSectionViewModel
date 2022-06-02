@@ -7,7 +7,7 @@
 
 import UIKit
 
-public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateFlowLayout,UICollectionViewDelegate,UICollectionViewDataSource {
+public class YKSectionCollectionView: UICollectionView {
 
     private lazy var loading:Bool = false
     private var objcs:[String] = []
@@ -54,52 +54,40 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func setupUI() -> Void {
-        self.delegate = self
-        self.dataSource = self
-        self.alwaysBounceVertical = true
-        self.alwaysBounceHorizontal = false
-        self.backgroundColor = .clear
-        self.addNoDateView()
-        self.initData()
-        self.register(UICollectionViewCell.classForCoder(), forCellWithReuseIdentifier: "UICollectionViewCell")
-        self.register(UICollectionReusableView.classForCoder(), forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "UICollectionReusableView")
-        self.register(UICollectionReusableView.classForCoder(), forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: "UICollectionReusableView")
-    }
-    
-    private func bindData() -> Void {
-        //不再初始化的时候进行刷新数据
-//        self.refreshData(mode: .Header)
-    }
-    
-    private func initData() -> Void {
-        for obj in self.datas {
-            let models = obj.yksc_registItems()
-            for model in models {
-                self.register(model.className, forCellWithReuseIdentifier: model.classId)
+    //MARK: - reloadData
+    public override func reloadData() {
+        self.endRefresh?(self.isNoMoreData)
+        super.reloadData()
+        self._nodataView.isShowNoData(noData: self.isNoMoreData)
+        if self.datas.count >= 0 {
+            var count:Int = 0
+            for obj in self.datas {
+                count = count + obj.yksc_numberOfItem()
             }
-            
-            if let headerModel = obj.yksc_registHeader?() {
-                for model in headerModel {
-                    self.register(model.className, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: model.classId)
-                }
+            if count <= 0 {
+                //add nodata
+                self._nodataView.isHidden = false
+            }else{
+                //remove nodataView
+                self._nodataView.isHidden = true
             }
-            
-            if let footerModel = obj.yksc_registFooter?() {
-                for model in footerModel {
-                    self.register(model.className, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: model.classId)
-                }
-            }
+        }else{
+            //add NoData
+            self._nodataView.isHidden = false
         }
     }
+}
+
+//MARK: - public func
+public extension YKSectionCollectionView {
     
-    public func resetViewModels(datas:[YKSectionCollectionViewProtocol]) -> Void {
+    func resetViewModels(datas:[YKSectionCollectionViewProtocol]) -> Void {
         self.datas = datas
         self.initData()
         self.reloadData()
     }
     
-    public func refreshData(mode:YKSectionViewModelRefreshMode) -> Void
+    func refreshData(mode:YKSectionViewModelRefreshMode) -> Void
     {
         if self.loading {
             //已经加载中
@@ -107,16 +95,14 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         }else {
             //开始加载
             self.loading = true
-            if let callBack = self.loadingCallBack {
-                callBack(true)
-            }
+            self.loadingCallBack?(true)
             self.startTimer()
         }
         if self.datas.count <= 0 {
             self.loading = false
-            if let callBack = self.loadingCallBack {
-                callBack(false)
-            }
+            self.isNoData = true
+            self.isNoMoreData = false
+            self.loadingCallBack?(false)
             self.stopTimer()
             self.reloadData()
             return
@@ -133,6 +119,7 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
             if weakself.objcs.count <= 0 {
                 if weakself.loading {
                     weakself.loading = false
+                    weakself.isNoMoreData = false
                     if let callBack = weakself.loadingCallBack {
                         callBack(false)
                     }
@@ -160,16 +147,16 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         }
     }
     
-    public func setNoDataViewTip(tip:String, font:UIFont) -> Void {
+    func setNoDataViewTip(tip:String, font:UIFont) -> Void {
         self._nodataView.tipLabel.text = tip
         self._nodataView.tipLabel.font = font
     }
     
-    public func setNoDataViewImage(image:UIImage?) -> Void {
+    func setNoDataViewImage(image:UIImage?) -> Void {
         self._nodataView.tipImageView.image = image
     }
     
-    public func toSetErrorCallBack(errorCallBack:@escaping (_ error:Error) -> Void) {
+    func toSetErrorCallBack(errorCallBack:@escaping (_ error:Error) -> Void) {
         if self.errorCallBack == nil {
             self.errorCallBack = errorCallBack
         }else {
@@ -179,7 +166,7 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         }
     }
     
-    public func toSetHandleViewController(handleViewController:@escaping ((_ controller:UIViewController, _ type:YKSectionViewModelPushType, _ animated:Bool) -> Void)) {
+    func toSetHandleViewController(handleViewController:@escaping ((_ controller:UIViewController, _ type:YKSectionViewModelPushType, _ animated:Bool) -> Void)) {
         if self.handleViewController == nil {
             self.handleViewController = handleViewController
         }else {
@@ -189,7 +176,7 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         }
     }
     
-    public func toSetEndRefresh(endRefresh:@escaping ((_ isNoMoreData:Bool) -> Void)) {
+    func toSetEndRefresh(endRefresh:@escaping ((_ isNoMoreData:Bool) -> Void)) {
         if self.endRefresh == nil {
             self.endRefresh = endRefresh
         }else {
@@ -199,7 +186,7 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         }
     }
     
-    public func toSetLoadingCallBack(loadingCallBack:@escaping ((_ isLoading:Bool) -> Void)) {
+    func toSetLoadingCallBack(loadingCallBack:@escaping ((_ isLoading:Bool) -> Void)) {
         if self.loadingCallBack == nil {
             self.loadingCallBack = loadingCallBack
         }else {
@@ -209,36 +196,26 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         }
     }
     
-    
-    //MARK: -reloadData
-    
-    public override func reloadData() {
-        if self.endRefresh != nil {
-            self.endRefresh!(self.isNoData)
-        }
-        super.reloadData()
-        self._nodataView.isShowNoData(noData: self.isNoData)
-        if self.datas.count >= 0 {
-            var count:Int = 0
-            for obj in self.datas {
-                count = count + obj.yksc_numberOfItem()
+    func handleRouter(eventName:String, userInfo:[String:Any]) -> Bool {
+        var result = false
+
+        for obj in self.datas {
+            if let resultP = obj.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo, collectionView: self, callBack: self.handleViewController ?? { _,_,_ in
+                
+            }) {
+                result = (result || resultP)
             }
-            if count <= 0 {
-                //add nodata
-                self._nodataView.isHidden = false
-            }else{
-                //remove nodataView
-                self._nodataView.isHidden = true
-            }
-        }else{
-            //add NoData
-            self._nodataView.isHidden = false
+
         }
+
+        return result
     }
+}
+
+//MARK: - dataSource
+extension YKSectionCollectionView: UICollectionViewDataSource {
     
     
-    
-    //MARK: -delegate/datasource
     
     public func numberOfSections(in collectionView: UICollectionView) -> Int {
         return self.datas.count
@@ -250,10 +227,21 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
     }
     
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        var cell:UICollectionViewCell = collectionView.dequeueReusableCell(withReuseIdentifier: "UICollectionViewCell", for: indexPath)
+        var cell:UICollectionViewCell = collectionView.dequeueReusableCell(withReuseIdentifier: "YKSectionCollectionViewCell", for: indexPath)
         let obj = self.datas[indexPath.section]
         let Id = obj.yksc_idForItem(at: indexPath)
         cell = collectionView.dequeueReusableCell(withReuseIdentifier: Id, for: indexPath)
+        
+        if let yk_collectionViewCell = cell as? YKSectionCollectionViewCell
+        {
+            yk_collectionViewCell.toSetClickEvent { [weak self] eventName, userInfo in
+                guard let weakself = self else { return }
+                let model = weakself.datas[indexPath.section]
+                let _ = model.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo ?? [:], collectionView: weakself, callBack: weakself.handleViewController ?? { _,_,_ in
+                    
+                })
+            }
+        }
         
         if cell.conforms(to: YKSectionViewModelResuseProtocol.self) {
             let cellP = cell as! YKSectionViewModelResuseProtocol
@@ -284,6 +272,18 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
                 if (num > 0 || isShowHeaderFooter)  {
                     if headerId.count > 0 {
                         let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: headerId, for: indexPath)
+                        
+                        
+                        if let yk_collectionViewHeader = headerView as? YKSectionCollectionHeaderFooterView {
+                            yk_collectionViewHeader.toSetClickEvent { [weak self] eventName, userInfo in
+                                guard let weakself = self else { return }
+                                let model = weakself.datas[indexPath.section]
+                                let _ = model.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo ?? [:], collectionView: weakself, callBack: weakself.handleViewController ?? { _,_,_ in
+                                    
+                                })
+                            }
+                        }
+                        
                         if headerView.conforms(to: YKSectionViewModelResuseProtocol.self) {
                             let headerViewP = headerView as! YKSectionViewModelResuseProtocol
                             if headerViewP.loadDataWithIndexPath?(obj, indexPath) == nil {
@@ -299,7 +299,7 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
                         return headerView
                     }
                 }else {
-                    return collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "UICollectionReusableView", for: indexPath)
+                    return collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "YKSectionCollectionHeaderFooterView", for: indexPath)
                 }
             }
         }
@@ -314,6 +314,17 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
                 if (num > 0 || isShowHeaderFooter)  {
                     if footerId.count > 0 {
                         let footerView = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: footerId, for: indexPath)
+                        
+                        if let yk_collectionViewFooter = footerView as? YKSectionCollectionHeaderFooterView {
+                            yk_collectionViewFooter.toSetClickEvent { [weak self] eventName, userInfo in
+                                guard let weakself = self else { return }
+                                let model = weakself.datas[indexPath.section]
+                                let _ = model.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo ?? [:], collectionView: weakself, callBack: weakself.handleViewController ?? { _,_,_ in
+                                    
+                                })
+                            }
+                        }
+                        
                         if footerView.conforms(to: YKSectionViewModelResuseProtocol.self) {
                             let headerViewP = footerView as! YKSectionViewModelResuseProtocol
                             if headerViewP.loadDataWithIndexPath?(obj, indexPath) == nil {
@@ -329,7 +340,7 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
                         return footerView
                     }
                 }else {
-                    return collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "UICollectionReusableView", for: indexPath)
+                    return collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "YKSectionCollectionHeaderFooterView", for: indexPath)
                 }
             }
         }
@@ -337,63 +348,11 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         return collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "UICollectionReusableView", for: indexPath)
     }
     
-    //MARK: -fulllayout
     
-    public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let obj = self.datas[indexPath.section]
-        let size = obj.yksc_sizeOfItem(with: collectionView.bounds.size.width, atIndexPath: indexPath)
-        return size
-    }
-    
-    public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-        let obj = self.datas[section]
-        var size = CGSize(width: collectionView.bounds.size.width, height: 0)
-        let num = obj.yksc_numberOfItem()
-        var isShowHeaderFooter:Bool = true
-        if let isShowHeaderFooterP = obj.yksc_noDataShowHeaderFooter?() {
-            isShowHeaderFooter = isShowHeaderFooterP
-        }
-        if (num > 0 || isShowHeaderFooter)  {
-            if let sizeP = obj.yksc_sizeOfHeader?(width: collectionView.bounds.size.width) {
-                size = sizeP
-            }
-        }
-        return size
-    }
-    
-    public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForFooterInSection section: Int) -> CGSize {
-        let obj = self.datas[section]
-        var size = CGSize(width: collectionView.bounds.size.width, height: 0)
-        let num = obj.yksc_numberOfItem()
-        var isShowHeaderFooter:Bool = true
-        if let isShowHeaderFooterP = obj.yksc_noDataShowHeaderFooter?() {
-            isShowHeaderFooter = isShowHeaderFooterP
-        }
-        if (num > 0 || isShowHeaderFooter)  {
-            if let sizeP = obj.yksc_sizeOfFooter?(width: collectionView.bounds.size.width) {
-                size = sizeP
-            }
-        }
-        return size
-    }
-    
-    public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        let obj = self.datas[section]
-        var lineSpacing:CGFloat = 0
-        if let lineSpacingP = obj.yksc_sectionMinimumLineSpacing?() {
-            lineSpacing = lineSpacingP
-        }
-        return lineSpacing
-    }
-    
-    public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        let obj = self.datas[section]
-        var interItemSpacing:CGFloat = 0
-        if let interItemSpacingP = obj.yksc_sectionMinimumInteritemSpacing?() {
-            interItemSpacing = interItemSpacingP
-        }
-        return interItemSpacing
-    }
+}
+
+//MARK: - delegate
+extension YKSectionCollectionView: UICollectionViewDelegate {
     
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let obj = self.datas[indexPath.section]
@@ -406,26 +365,98 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
             
         }
     }
+}
+
+//MARK: - flowLayout
+extension YKSectionCollectionView: UICollectionViewDelegateFlowLayout {
     
-    //MARK: -handleRouter
-    public func handleRouter(eventName:String, userInfo:Dictionary<String,Any>) -> Bool {
-        var result = false
-        
-        for obj in self.datas {
-            guard let handleCallBack = self.handleViewController else {
-                return result
-            }
-            if let resultP = obj.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo, collectionView: self, callBack: handleCallBack) {
-                result = (result || resultP)
-            }
-            
-        }
-        
-        return result
+    
+    public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let obj = self.datas[indexPath.section]
+        return obj.yksc_sizeOfItem(with: collectionView.bounds.size.width, atIndexPath: indexPath)
     }
     
-    //MARK: -private func
+    public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+        let obj = self.datas[section]
+        let size = CGSize(width: collectionView.bounds.size.width, height: 0)
+        let num = obj.yksc_numberOfItem()
+        let isShowHeaderFooter = obj.yksc_noDataShowHeaderFooter?() ?? false
+        
+        if (num > 0 || isShowHeaderFooter)  {
+            return obj.yksc_sizeOfHeader?(with: collectionView.bounds.size.width) ?? size
+        }
+        return size
+    }
     
+    public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForFooterInSection section: Int) -> CGSize {
+        
+        let obj = self.datas[section]
+        let size = CGSize(width: collectionView.bounds.size.width, height: 0)
+        let num = obj.yksc_numberOfItem()
+        let isShowHeaderFooter = obj.yksc_noDataShowHeaderFooter?() ?? false
+        
+        if (num > 0 || isShowHeaderFooter)  {
+            return obj.yksc_sizeOfFooter?(with: collectionView.bounds.size.width) ?? size
+        }
+        return size
+    }
+    
+    public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        let obj = self.datas[section]
+        return obj.yksc_sectionMinimumLineSpacing?() ?? 0
+    }
+    
+    public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        let obj = self.datas[section]
+        return obj.yksc_sectionMinimumInteritemSpacing?() ?? 0
+    }
+    
+    
+}
+
+//MARK: - private func
+private extension YKSectionCollectionView {
+    
+    private func setupUI() -> Void {
+        self.delegate = self
+        self.dataSource = self
+        self.alwaysBounceVertical = true
+        self.alwaysBounceHorizontal = false
+        self.backgroundColor = .clear
+        self.addNoDateView()
+        self.initData()
+        self.register(YKSectionCollectionViewCell.classForCoder(), forCellWithReuseIdentifier: "YKSectionCollectionViewCell")
+        self.register(YKSectionCollectionHeaderFooterView.classForCoder(), forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "YKSectionCollectionHeaderFooterView")
+        self.register(YKSectionCollectionHeaderFooterView.classForCoder(), forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: "YKSectionCollectionHeaderFooterView")
+        self.register(UICollectionReusableView.classForCoder(), forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "UICollectionReusableView")
+        self.register(UICollectionReusableView.classForCoder(), forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: "UICollectionReusableView")
+    }
+    
+    private func bindData() -> Void {
+        
+        
+    }
+    
+    private func initData() -> Void {
+        for obj in self.datas {
+            let models = obj.yksc_registItems()
+            for model in models {
+                self.register(model.className, forCellWithReuseIdentifier: model.classId)
+            }
+            
+            if let headerModel = obj.yksc_registHeader?() {
+                for model in headerModel {
+                    self.register(model.className, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: model.classId)
+                }
+            }
+            
+            if let footerModel = obj.yksc_registFooter?() {
+                for model in footerModel {
+                    self.register(model.className, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: model.classId)
+                }
+            }
+        }
+    }
     
     private func startTimer() -> Void {
         self.perform(#selector(outTimeTodo), with: nil, afterDelay: self.outTime)
@@ -459,4 +490,5 @@ public class YKSectionCollectionView: UICollectionView,UICollectionViewDelegateF
         ])
         return error
     }
+    
 }

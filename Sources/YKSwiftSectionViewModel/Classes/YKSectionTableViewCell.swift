@@ -2,26 +2,42 @@
 //  YKSectionTableViewCell.swift
 //  YKSwiftSectionViewModel
 //
-//  Created by linghit on 2022/5/26.
+//  Created by edward on 2022/5/26.
 //
 
 import UIKit
 
-public class YKSectionTableViewCell: UITableViewCell {
+open class YKSectionTableViewCell: UITableViewCell {
+    
+    private var _clickEvent:((_ eventName:String, _ userInfo:[String:Any]?)->Void)?
+    public var clickEvent:((_ eventName:String, _ userInfo:[String:Any]?)->Void)? {
+        get {
+            return self._clickEvent
+        }
+    }
+    
+    internal func toSetClickEvent(eventCallBack:@escaping (_ eventName:String, _ userInfo:[String:Any]?)->Void) {
+        self._clickEvent = eventCallBack
+    }
     
     public override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
+        self.autoExecute()
     }
     
-    required init?(coder: NSCoder) {
+    required public init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    public override class func awakeFromNib() {
+    open func autoExecute() {
+        
+    }
+    
+    open override class func awakeFromNib() {
         super.awakeFromNib()
     }
 
-    public override func setSelected(_ selected: Bool, animated: Bool) {
+    open override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
 
         // Configure the view for the selected state

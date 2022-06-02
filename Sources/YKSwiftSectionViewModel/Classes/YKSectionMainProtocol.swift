@@ -17,11 +17,6 @@ import Foundation
     case Footer = 1
 }
 
-//@objc public enum YKSectionViewModelEndRefreshResult:Int {
-//    case Success = 0
-//    case Timeout = 1
-//}
-
 @objc public protocol YKSectionMainProtocol
 {
     
