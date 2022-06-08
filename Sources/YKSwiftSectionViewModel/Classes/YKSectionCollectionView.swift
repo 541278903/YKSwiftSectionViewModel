@@ -81,12 +81,18 @@ public class YKSectionCollectionView: UICollectionView {
 //MARK: - public func
 public extension YKSectionCollectionView {
     
+    /// 重新加载viewmodels
+    /// - Parameter datas: 数据源
+    /// - Returns: 无
     func resetViewModels(datas:[YKSectionCollectionViewProtocol]) -> Void {
         self.datas = datas
         self.initData()
         self.reloadData()
     }
     
+    /// 刷新列表
+    /// - Parameter mode: 刷新模式
+    /// - Returns: 无
     func refreshData(mode:YKSectionViewModelRefreshMode) -> Void
     {
         if self.loading {
@@ -147,15 +153,25 @@ public extension YKSectionCollectionView {
         }
     }
     
+    /// 设置无数据时页面显示文本
+    /// - Parameters:
+    ///   - tip: 文本提示
+    ///   - font: 字体
+    /// - Returns: 无
     func setNoDataViewTip(tip:String, font:UIFont) -> Void {
         self._nodataView.tipLabel.text = tip
         self._nodataView.tipLabel.font = font
     }
     
+    /// 设置无数据时页面显示图案
+    /// - Parameter image: 图案
+    /// - Returns: 无
     func setNoDataViewImage(image:UIImage?) -> Void {
         self._nodataView.tipImageView.image = image
     }
     
+    /// 设置错误回调
+    /// - Parameter errorCallBack: 错误回调
     func toSetErrorCallBack(errorCallBack:@escaping (_ error:Error) -> Void) {
         if self.errorCallBack == nil {
             self.errorCallBack = errorCallBack
@@ -166,6 +182,8 @@ public extension YKSectionCollectionView {
         }
     }
     
+    /// 设置响应操作
+    /// - Parameter handleViewController: 响应操作
     func toSetHandleViewController(handleViewController:@escaping ((_ controller:UIViewController, _ type:YKSectionViewModelPushType, _ animated:Bool) -> Void)) {
         if self.handleViewController == nil {
             self.handleViewController = handleViewController
@@ -176,6 +194,8 @@ public extension YKSectionCollectionView {
         }
     }
     
+    /// 设置结束刷新时动作
+    /// - Parameter endRefresh: 结束刷新动作
     func toSetEndRefresh(endRefresh:@escaping ((_ isNoMoreData:Bool) -> Void)) {
         if self.endRefresh == nil {
             self.endRefresh = endRefresh
@@ -186,6 +206,8 @@ public extension YKSectionCollectionView {
         }
     }
     
+    /// 设置刷新动作
+    /// - Parameter loadingCallBack: 设置刷新动作
     func toSetLoadingCallBack(loadingCallBack:@escaping ((_ isLoading:Bool) -> Void)) {
         if self.loadingCallBack == nil {
             self.loadingCallBack = loadingCallBack
@@ -196,6 +218,11 @@ public extension YKSectionCollectionView {
         }
     }
     
+    /// 设置外部向内部传递响应操作
+    /// - Parameters:
+    ///   - eventName: 响应名称
+    ///   - userInfo: 响应数据
+    /// - Returns: 无
     func handleRouter(eventName:String, userInfo:[String:Any]) -> Bool {
         var result = false
 
@@ -214,7 +241,6 @@ public extension YKSectionCollectionView {
 
 //MARK: - dataSource
 extension YKSectionCollectionView: UICollectionViewDataSource {
-    
     
     
     public func numberOfSections(in collectionView: UICollectionView) -> Int {
