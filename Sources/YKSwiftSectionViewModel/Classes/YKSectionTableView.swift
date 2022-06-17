@@ -279,7 +279,7 @@ extension YKSectionTableView: UITableViewDataSource {
     
     public func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
         let obj = self.datas[indexPath.section]
-        return obj.yksc_estimatedHeightOfRow?(at: indexPath.row) ?? 0
+        return obj.yksc_estimatedHeightOfRow?(at: indexPath.row) ?? 0.01
     }
     
     public func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
@@ -327,7 +327,7 @@ extension YKSectionTableView: UITableViewDataSource {
     
     public func tableView(_ tableView: UITableView, estimatedHeightForHeaderInSection section: Int) -> CGFloat {
         let obj = self.datas[section]
-        return obj.yksc_estimatedHeightOfHeader?() ?? 0
+        return obj.yksc_estimatedHeightOfHeader?() ?? 0.00001
     }
     
     public func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
@@ -337,7 +337,7 @@ extension YKSectionTableView: UITableViewDataSource {
         let isShowHeaderFooter = obj.yksc_noDataShowHeaderFooter?() ?? false
         
         if num > 0 || isShowHeaderFooter {
-            return obj.yksc_heightOfHeader?() ?? 0
+            return obj.yksc_heightOfHeader?() ?? 0.00001
         }
         return 0
     }
@@ -386,7 +386,7 @@ extension YKSectionTableView: UITableViewDataSource {
     
     public func tableView(_ tableView: UITableView, estimatedHeightForFooterInSection section: Int) -> CGFloat {
         let obj = self.datas[section]
-        return obj.yksc_estimatedHeightOfFooter?() ?? 0
+        return obj.yksc_estimatedHeightOfFooter?() ?? 0.00001
     }
     
     public func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
@@ -398,7 +398,7 @@ extension YKSectionTableView: UITableViewDataSource {
         let isShowHeaderFooter = obj.yksc_noDataShowHeaderFooter?() ?? false
         
         if num > 0 || isShowHeaderFooter {
-            return obj.yksc_heightOfFooter?() ?? 0
+            return obj.yksc_heightOfFooter?() ?? 0.00001
         }
         return 0
     }
