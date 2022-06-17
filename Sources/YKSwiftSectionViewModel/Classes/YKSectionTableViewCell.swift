@@ -22,6 +22,14 @@ open class YKSectionTableViewCell: UITableViewCell {
     
     public override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
+        
+        self.selectionStyle = .none
+        if #available(iOS 13.0, *) {
+            self.backgroundColor = .systemBackground
+        } else {
+            self.backgroundColor = .white
+        }
+        self.contentView.backgroundColor = .clear
         self.autoExecute()
     }
     

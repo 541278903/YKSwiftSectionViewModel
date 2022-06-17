@@ -56,8 +56,11 @@ public class YKSectionCollectionView: UICollectionView {
     
     //MARK: - reloadData
     public override func reloadData() {
-        self.endRefresh?(self.isNoMoreData)
         super.reloadData()
+        DispatchQueue.main.async { [weak self] in
+            guard let weakself = self else { return }
+            weakself.endRefresh?(weakself.isNoMoreData)
+        }
         self._nodataView.isShowNoData(noData: self.isNoMoreData)
         if self.datas.count >= 0 {
             var count:Int = 0

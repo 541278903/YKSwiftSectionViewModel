@@ -37,15 +37,11 @@ public class YKSectionTableView: UITableView {
     
     private var isNoData:Bool = false
     
-    public init(frame:CGRect, style:UITableView.Style, datas:[YKSectionTableViewProtocol]) {
-        super.init(frame: frame, style: .grouped)
+    public init(frame:CGRect, datas:[YKSectionTableViewProtocol], style:UITableView.Style = .plain) {
+        super.init(frame: frame, style: style)
         self.datas = datas
         self.setupUI()
         self.bindData()
-    }
-    
-    public convenience init(frame: CGRect, datas:[YKSectionTableViewProtocol]) {
-        self.init(frame: frame, style: .grouped, datas: datas)
     }
     
     required init?(coder: NSCoder) {
@@ -54,8 +50,12 @@ public class YKSectionTableView: UITableView {
     
     //MARK: - reloadData
     public override func reloadData() {
-        self.endRefresh?(self.isNoMoreData)
+        
         super.reloadData()
+        DispatchQueue.main.async { [weak self] in
+            guard let weakself = self else { return }
+            weakself.endRefresh?(weakself.isNoMoreData)
+        }
         self._nodataView.isShowNoData(noData: self.isNoData)
         if self.datas.count >= 0 {
             var count:Int = 0
@@ -293,33 +293,32 @@ extension YKSectionTableView: UITableViewDataSource {
         if (num > 0 || isShowHeaderFooter)  {
             if let headerId = obj.yksc_idForHeader?() {
                 if headerId.count > 0 {
-                    if let headerView = tableView.dequeueReusableHeaderFooterView(withIdentifier: headerId) {
+                    guard let headerView = tableView.dequeueReusableHeaderFooterView(withIdentifier: headerId) else { return nil }
+                    
+                    if let yk_headerView = headerView as? YKSectionTableViewHeaderFooterView {
                         
-                        if let yk_headerView = headerView as? YKSectionTableViewHeaderFooterView {
-                            
-                            yk_headerView.toSetClickEvent { [weak self] eventName, userInfo in
-                                guard let weakself = self else { return }
-                                let model = weakself.datas[section]
-                                let _ = model.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo ?? [:], tableView: weakself, callBack: weakself.handleViewController ?? { _,_,_ in
-                                    
-                                })
-                            }
+                        yk_headerView.toSetClickEvent { [weak self] eventName, userInfo in
+                            guard let weakself = self else { return }
+                            let model = weakself.datas[section]
+                            let _ = model.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo ?? [:], tableView: weakself, callBack: weakself.handleViewController ?? { _,_,_ in
+                                
+                            })
                         }
-                        
-                        if headerView.conforms(to: YKSectionViewModelResuseProtocol.self) {
-                            let headerViewP = headerView as! YKSectionViewModelResuseProtocol
-                            if headerViewP.loadDataWithSection?(obj, section) == nil {
-                                #if DEBUG
-                                print("❌ \(headerView)未实现loadDataWithSection：")
-                                #endif
-                            }
-                        }else {
+                    }
+                    
+                    if headerView.conforms(to: YKSectionViewModelResuseProtocol.self) {
+                        let headerViewP = headerView as! YKSectionViewModelResuseProtocol
+                        if headerViewP.loadDataWithSection?(obj, section) == nil {
                             #if DEBUG
-                            print("❌ \(headerView)未继承'YKSectionViewModelResuseProtocol'协议")
+                            print("❌ \(headerView)未实现loadDataWithSection：")
                             #endif
                         }
-                        return headerView
+                    }else {
+                        #if DEBUG
+                        print("❌ \(headerView)未继承'YKSectionViewModelResuseProtocol'协议")
+                        #endif
                     }
+                    return headerView
                 }
             }
         }
@@ -353,32 +352,32 @@ extension YKSectionTableView: UITableViewDataSource {
         if (num > 0 || isShowHeaderFooter)  {
             if let footerId = obj.yksc_idForFooter?() {
                 if footerId.count > 0 {
-                    if let footerView = tableView.dequeueReusableHeaderFooterView(withIdentifier: footerId) {
-                        
-                        if let yk_footerView = footerView as? YKSectionTableViewHeaderFooterView {
-                            yk_footerView.toSetClickEvent { [weak self] eventName, userInfo in
-                                guard let weakself = self else { return }
-                                let model = weakself.datas[section]
-                                let _ = model.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo ?? [:], tableView: weakself, callBack: weakself.handleViewController ?? { _,_,_ in
-                                    
-                                })
-                            }
+                    
+                    guard let footerView = tableView.dequeueReusableHeaderFooterView(withIdentifier: footerId) else { return nil }
+                    
+                    if let yk_footerView = footerView as? YKSectionTableViewHeaderFooterView {
+                        yk_footerView.toSetClickEvent { [weak self] eventName, userInfo in
+                            guard let weakself = self else { return }
+                            let model = weakself.datas[section]
+                            let _ = model.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo ?? [:], tableView: weakself, callBack: weakself.handleViewController ?? { _,_,_ in
+                                
+                            })
                         }
-                        
-                        if footerView.conforms(to: YKSectionViewModelResuseProtocol.self) {
-                            let footerViewP = footerView as! YKSectionViewModelResuseProtocol
-                            if footerViewP.loadDataWithSection?(obj, section) == nil {
-                                #if DEBUG
-                                print("❌ \(footerView)未实现loadDataWithSection：")
-                                #endif
-                            }
-                        }else {
+                    }
+                    
+                    if footerView.conforms(to: YKSectionViewModelResuseProtocol.self) {
+                        let footerViewP = footerView as! YKSectionViewModelResuseProtocol
+                        if footerViewP.loadDataWithSection?(obj, section) == nil {
                             #if DEBUG
-                            print("❌ \(footerView)未继承'YKSectionViewModelResuseProtocol'协议")
+                            print("❌ \(footerView)未实现loadDataWithSection：")
                             #endif
                         }
-                        return footerView
+                    }else {
+                        #if DEBUG
+                        print("❌ \(footerView)未继承'YKSectionViewModelResuseProtocol'协议")
+                        #endif
                     }
+                    return footerView
                 }
             }
         }
