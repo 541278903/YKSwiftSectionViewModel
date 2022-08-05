@@ -36,14 +36,5 @@ import UIKit
     @objc optional func yksc_sectionMinimumInteritemSpacing() -> CGFloat
     
     
-    /// 获取当前cell点击事件
-    @objc optional func yksc_didSelectItem(at indexPath:IndexPath, collectionView:YKSectionCollectionView, callBack:((_ viewcontroller:UIViewController, _ type:YKSectionViewModelPushType , _ animate:Bool) -> Void))
     
-    /// 获取响应内容触发机制
-    /// - Parameters:
-    ///   - eventName: 响应头部信息
-    ///   - userInfo: 响应内容
-    ///   - controllerEvent: 控制回调
-    /// - Returns: 是否作出响应
-    @objc optional func yksc_handleRouterEvent(eventName:String, userInfo:[String:Any], collectionView:YKSectionCollectionView, callBack:((_ viewcontroller:UIViewController, _ type:YKSectionViewModelPushType, _ animate:Bool) -> Void)) -> Bool
 }

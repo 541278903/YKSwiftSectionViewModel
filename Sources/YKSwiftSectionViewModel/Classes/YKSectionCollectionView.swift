@@ -117,6 +117,27 @@ public extension YKSectionCollectionView {
             return
         }
         
+        var refreshList:[YKSectionCollectionViewProtocol] = []
+        
+        for data in self.datas {
+            if mode == .Footer {
+                
+                if let beIn = data.yksc_isRefreshFooter?()
+                {
+                    if beIn {
+                        refreshList.append(data)
+                    }else {
+                        continue
+                    }
+                }else {
+                    refreshList.append(data)
+                }
+                
+            }else {
+                refreshList.append(data)
+            }
+        }
+        
         let reloadBlock = { [weak self] (obj:YKSectionCollectionViewProtocol, isNoMoreData:Bool) in
             guard let weakself = self else { return }
             let objcName = "d\(Unmanaged.passUnretained(obj).toOpaque())"
@@ -139,13 +160,13 @@ public extension YKSectionCollectionView {
                 }
             }
         }
-        for obj in self.datas {
+        for obj in refreshList {
             let objcName = "d\(Unmanaged.passUnretained(obj).toOpaque())"
             self.objcs.append(objcName)
             
         }
         
-        for obj in self.datas {
+        for obj in refreshList {
             obj.yksc_beginToReloadData(mode: mode) { isNoMoreData in
                 reloadBlock(obj,isNoMoreData)
             } errorCallBack: { [weak self] error in
@@ -230,7 +251,7 @@ public extension YKSectionCollectionView {
         var result = false
 
         for obj in self.datas {
-            if let resultP = obj.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo, collectionView: self, callBack: self.handleViewController ?? { _,_,_ in
+            if let resultP = obj.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo, contentView: self, callBack: self.handleViewController ?? { _,_,_ in
                 
             }) {
                 result = (result || resultP)
@@ -266,7 +287,7 @@ extension YKSectionCollectionView: UICollectionViewDataSource {
             yk_collectionViewCell.toSetClickEvent { [weak self] eventName, userInfo in
                 guard let weakself = self else { return }
                 let model = weakself.datas[indexPath.section]
-                let _ = model.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo ?? [:], collectionView: weakself, callBack: weakself.handleViewController ?? { _,_,_ in
+                let _ = model.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo ?? [:], contentView: weakself, callBack: weakself.handleViewController ?? { _,_,_ in
                     
                 })
             }
@@ -307,7 +328,7 @@ extension YKSectionCollectionView: UICollectionViewDataSource {
                             yk_collectionViewHeader.toSetClickEvent { [weak self] eventName, userInfo in
                                 guard let weakself = self else { return }
                                 let model = weakself.datas[indexPath.section]
-                                let _ = model.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo ?? [:], collectionView: weakself, callBack: weakself.handleViewController ?? { _,_,_ in
+                                let _ = model.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo ?? [:], contentView: weakself, callBack: weakself.handleViewController ?? { _,_,_ in
                                     
                                 })
                             }
@@ -348,7 +369,7 @@ extension YKSectionCollectionView: UICollectionViewDataSource {
                             yk_collectionViewFooter.toSetClickEvent { [weak self] eventName, userInfo in
                                 guard let weakself = self else { return }
                                 let model = weakself.datas[indexPath.section]
-                                let _ = model.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo ?? [:], collectionView: weakself, callBack: weakself.handleViewController ?? { _,_,_ in
+                                let _ = model.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo ?? [:], contentView: weakself, callBack: weakself.handleViewController ?? { _,_,_ in
                                     
                                 })
                             }
@@ -385,7 +406,7 @@ extension YKSectionCollectionView: UICollectionViewDelegate {
     
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let obj = self.datas[indexPath.section]
-        if obj.yksc_didSelectItem?(at: indexPath, collectionView: self, callBack: { [weak self] viewcontroller, type, animate in
+        if obj.yksc_didSelectItem?(at: indexPath, contentView: self, callBack: { [weak self] viewcontroller, type, animate in
             if let strongself = self {
                 guard let handleCallBack = strongself.handleViewController else { return  }
                 handleCallBack(viewcontroller,type,animate)

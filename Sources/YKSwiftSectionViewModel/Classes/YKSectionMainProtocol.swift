@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 @objc public enum YKSectionViewModelPushType:Int {
     case Push = 0
@@ -60,6 +61,20 @@ import Foundation
     /// - Returns: sectionheader Id
     @objc optional func yksc_idForFooter() -> String
     
+    /// 获取当前cell点击事件
+    @objc optional func yksc_didSelectItem(at indexPath:IndexPath, contentView:UIView, callBack:((_ viewcontroller:UIViewController, _ type:YKSectionViewModelPushType , _ animate:Bool) -> Void))
     
+    /// 获取响应内容触发机制
+    /// - Parameters:
+    ///   - eventName: 响应头部信息
+    ///   - userInfo: 响应内容
+    ///   - controllerEvent: 控制回调
+    /// - Returns: 是否作出响应
+    @objc optional func yksc_handleRouterEvent(eventName:String, userInfo:[String:Any], contentView:UIView, callBack:((_ viewcontroller:UIViewController, _ type:YKSectionViewModelPushType, _ animate:Bool) -> Void)) -> Bool
+    
+    /// 是否参加footer刷新
+    /// - Returns: 是否参加footer刷新
+    /// - Default: 默认为true 参加刷新
+    @objc optional func yksc_isRefreshFooter() -> Bool
 }
 

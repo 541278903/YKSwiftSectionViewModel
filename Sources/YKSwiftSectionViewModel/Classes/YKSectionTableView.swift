@@ -198,7 +198,7 @@ public extension YKSectionTableView {
     func handleRouter(eventName:String, userInfo:Dictionary<String,Any>) -> Bool {
         var result = false
         for obj in self.datas {
-            if let resultP = obj.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo, tableView: self, callBack: self.handleViewController ?? { _,_,_ in
+            if let resultP = obj.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo, contentView: self, callBack: self.handleViewController ?? { _,_,_ in
                 
             }) {
                 result = (result || resultP)
@@ -214,7 +214,7 @@ extension YKSectionTableView: UITableViewDelegate {
     
     public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let obj = self.datas[indexPath.section]
-        if obj.yksc_didSelectItem?(at: indexPath, tableView: self, callBack: { [weak self] viewcontroller, type, animate in
+        if obj.yksc_didSelectItem?(at: indexPath, contentView: self, callBack: { [weak self] viewcontroller, type, animate in
             if let strongself = self {
                 guard let handleCallBack = strongself.handleViewController else { return  }
                 handleCallBack(viewcontroller,type,animate)
@@ -248,7 +248,7 @@ extension YKSectionTableView: UITableViewDataSource {
                 yk_tableViewCell.toSetClickEvent { [weak self] eventName, userInfo in
                     guard let weakself = self else { return }
                     let model = weakself.datas[indexPath.section]
-                    let _ = model.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo ?? [:], tableView: weakself, callBack: weakself.handleViewController ?? { _,_,_ in
+                    let _ = model.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo ?? [:], contentView: weakself, callBack: weakself.handleViewController ?? { _,_,_ in
                         
                     })
                 }
@@ -300,7 +300,7 @@ extension YKSectionTableView: UITableViewDataSource {
                         yk_headerView.toSetClickEvent { [weak self] eventName, userInfo in
                             guard let weakself = self else { return }
                             let model = weakself.datas[section]
-                            let _ = model.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo ?? [:], tableView: weakself, callBack: weakself.handleViewController ?? { _,_,_ in
+                            let _ = model.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo ?? [:], contentView: weakself, callBack: weakself.handleViewController ?? { _,_,_ in
                                 
                             })
                         }
@@ -359,7 +359,7 @@ extension YKSectionTableView: UITableViewDataSource {
                         yk_footerView.toSetClickEvent { [weak self] eventName, userInfo in
                             guard let weakself = self else { return }
                             let model = weakself.datas[section]
-                            let _ = model.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo ?? [:], tableView: weakself, callBack: weakself.handleViewController ?? { _,_,_ in
+                            let _ = model.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo ?? [:], contentView: weakself, callBack: weakself.handleViewController ?? { _,_,_ in
                                 
                             })
                         }
