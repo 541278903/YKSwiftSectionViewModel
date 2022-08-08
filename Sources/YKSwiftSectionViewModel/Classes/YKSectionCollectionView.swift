@@ -150,9 +150,7 @@ public extension YKSectionCollectionView {
                 if weakself.loading {
                     weakself.loading = false
                     weakself.isNoMoreData = false
-                    if let callBack = weakself.loadingCallBack {
-                        callBack(false)
-                    }
+                    weakself.loadingCallBack?(false)
                     weakself.stopTimer()
                     weakself.reloadData()
                 }else {
