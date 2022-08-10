@@ -226,13 +226,7 @@ public extension YKSectionCollectionView {
             print("❌ endRefresh已设置，请勿重新设置")
             #endif
         }
-
-        return result
     }
-}
-
-//MARK: - dataSource
-extension YKSectionCollectionView: UICollectionViewDataSource {
     
     /// 设置刷新动作
     /// - Parameter loadingCallBack: 设置刷新动作
@@ -286,8 +280,7 @@ extension YKSectionCollectionView: UICollectionViewDataSource {
         let Id = obj.yksc_idForItem(at: indexPath)
         cell = collectionView.dequeueReusableCell(withReuseIdentifier: Id, for: indexPath)
         
-        if let yk_collectionViewCell = cell as? YKSectionCollectionViewCell
-        {
+        if let yk_collectionViewCell = cell as? YKSectionCollectionViewCell {
             yk_collectionViewCell.toSetClickEvent { [weak self] eventName, userInfo in
                 guard let weakself = self else { return }
                 let model = weakself.datas[indexPath.section]
