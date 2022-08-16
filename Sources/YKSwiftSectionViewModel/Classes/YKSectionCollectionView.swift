@@ -14,6 +14,7 @@ public class YKSectionCollectionView: UICollectionView {
     
     private lazy var _nodataView:YKSectionNoDataView = {
         let view = YKSectionNoDataView.init(frame: self.bounds)
+        view.isHidden = true
         view.reloadCallBack = { [weak self] in
             if let strongself = self {
                 strongself.refreshData(mode: .Header)
@@ -34,10 +35,9 @@ public class YKSectionCollectionView: UICollectionView {
     
     private var loadingCallBack:((_ isLoading:Bool) -> Void)?
     
-    private var isNoData:Bool = false
-    
     private var isNoMoreData:Bool = false
     
+    private var afterReload:Bool = false
     
     public init(frame: CGRect, layout:UICollectionViewLayout, datas:[YKSectionCollectionViewProtocol]) {
         super.init(frame: frame, collectionViewLayout: layout)
@@ -57,27 +57,18 @@ public class YKSectionCollectionView: UICollectionView {
     //MARK: - reloadData
     public override func reloadData() {
         super.reloadData()
+        
+        var haveData = false
+        for vm in self.datas {
+            haveData = haveData || (vm.yksc_numberOfItem() > 0)
+        }
+        
+//        self.endRefresh?(self.isNoMoreData)
         DispatchQueue.main.async { [weak self] in
             guard let weakself = self else { return }
             weakself.endRefresh?(weakself.isNoMoreData)
         }
-        self._nodataView.isShowNoData(noData: self.isNoMoreData)
-        if self.datas.count >= 0 {
-            var count:Int = 0
-            for obj in self.datas {
-                count = count + obj.yksc_numberOfItem()
-            }
-            if count <= 0 {
-                //add nodata
-                self._nodataView.isHidden = false
-            }else{
-                //remove nodataView
-                self._nodataView.isHidden = true
-            }
-        }else{
-            //add NoData
-            self._nodataView.isHidden = false
-        }
+        self._nodataView.isHidden = !(self.afterReload && !haveData)
     }
 }
 
@@ -104,12 +95,14 @@ public extension YKSectionCollectionView {
         }else {
             //开始加载
             self.loading = true
+            self.isNoMoreData = false
+            self.afterReload = false
             self.loadingCallBack?(true)
             self.startTimer()
         }
         if self.datas.count <= 0 {
             self.loading = false
-            self.isNoData = true
+            self.afterReload = true
             self.isNoMoreData = false
             self.loadingCallBack?(false)
             self.stopTimer()
@@ -141,15 +134,16 @@ public extension YKSectionCollectionView {
         let reloadBlock = { [weak self] (obj:YKSectionCollectionViewProtocol, isNoMoreData:Bool) in
             guard let weakself = self else { return }
             let objcName = "d\(Unmanaged.passUnretained(obj).toOpaque())"
-            weakself.isNoData = true
-            weakself.isNoMoreData = weakself.isNoMoreData && isNoMoreData
+            
+            weakself.isNoMoreData = weakself.isNoMoreData && isNoMoreData;
+            
             if weakself.objcs.count > 0 {
                 weakself.objcs.remove(at: weakself.objcs.firstIndex(of: objcName)!)
             }
             if weakself.objcs.count <= 0 {
+                weakself.afterReload = true
                 if weakself.loading {
                     weakself.loading = false
-                    weakself.isNoMoreData = false
                     weakself.loadingCallBack?(false)
                     weakself.stopTimer()
                     weakself.reloadData()
@@ -169,7 +163,7 @@ public extension YKSectionCollectionView {
                 reloadBlock(obj,isNoMoreData)
             } errorCallBack: { [weak self] error in
                 guard let weakSelf = self else { return }
-                weakSelf.errorCallBack!(error)
+                weakSelf.errorCallBack?(error)
             }
 
         }
@@ -291,13 +285,8 @@ extension YKSectionCollectionView: UICollectionViewDataSource {
             }
         }
         
-        if cell.conforms(to: YKSectionViewModelResuseProtocol.self) {
-            let cellP = cell as! YKSectionViewModelResuseProtocol
-            if cellP.loadDataWithIndexPath?(obj, indexPath) == nil {
-                #if DEBUG
-                print("❌ \(cell)未实现loadDataWithIndexPath：")
-                #endif
-            }
+        if let cellP = cell as? YKSectionViewModelResuseProtocol {
+            cellP.loadDataWithIndexPath?(obj, at: indexPath)
         }else {
             #if DEBUG
             print("❌ \(cell)未继承'YKSectionViewModelResuseProtocol'协议")
@@ -312,10 +301,7 @@ extension YKSectionCollectionView: UICollectionViewDataSource {
         
         if kind == UICollectionView.elementKindSectionHeader {
             if let headerId = obj.yksc_idForHeader?() {
-                var isShowHeaderFooter:Bool = true
-                if let isShowHeaderFooterP = obj.yksc_noDataShowHeaderFooter?() {
-                    isShowHeaderFooter = isShowHeaderFooterP
-                }
+                let isShowHeaderFooter:Bool = obj.yksc_noDataShowHeaderFooter?() ?? true
                 let num = obj.yksc_numberOfItem()
                 if (num > 0 || isShowHeaderFooter)  {
                     if headerId.count > 0 {
@@ -332,13 +318,8 @@ extension YKSectionCollectionView: UICollectionViewDataSource {
                             }
                         }
                         
-                        if headerView.conforms(to: YKSectionViewModelResuseProtocol.self) {
-                            let headerViewP = headerView as! YKSectionViewModelResuseProtocol
-                            if headerViewP.loadDataWithIndexPath?(obj, indexPath) == nil {
-                                #if DEBUG
-                                print("❌ \(headerView)未实现loadDataWithIndexPath：")
-                                #endif
-                            }
+                        if let headerViewP = headerView as? YKSectionViewModelResuseProtocol {
+                            headerViewP.loadDataWithIndexPath?(obj, at: indexPath)
                         }else {
                             #if DEBUG
                             print("❌ \(headerView)未继承'YKSectionViewModelResuseProtocol'协议")
@@ -354,10 +335,7 @@ extension YKSectionCollectionView: UICollectionViewDataSource {
         
         if kind == UICollectionView.elementKindSectionFooter {
             if let footerId = obj.yksc_idForFooter?() {
-                var isShowHeaderFooter:Bool = true
-                if let isShowHeaderFooterP = obj.yksc_noDataShowHeaderFooter?() {
-                    isShowHeaderFooter = isShowHeaderFooterP
-                }
+                let isShowHeaderFooter:Bool = obj.yksc_noDataShowHeaderFooter?() ?? true
                 let num = obj.yksc_numberOfItem()
                 if (num > 0 || isShowHeaderFooter)  {
                     if footerId.count > 0 {
@@ -373,18 +351,14 @@ extension YKSectionCollectionView: UICollectionViewDataSource {
                             }
                         }
                         
-                        if footerView.conforms(to: YKSectionViewModelResuseProtocol.self) {
-                            let headerViewP = footerView as! YKSectionViewModelResuseProtocol
-                            if headerViewP.loadDataWithIndexPath?(obj, indexPath) == nil {
-                                #if DEBUG
-                                print("❌ \(footerView)未实现loadDataWithIndexPath：")
-                                #endif
-                            }
+                        if let headerViewP = footerView as? YKSectionViewModelResuseProtocol {
+                            headerViewP.loadDataWithIndexPath?(obj, at: indexPath)
                         }else {
                             #if DEBUG
                             print("❌ \(footerView)未继承'YKSectionViewModelResuseProtocol'协议")
                             #endif
                         }
+                        
                         return footerView
                     }
                 }else {
@@ -399,25 +373,16 @@ extension YKSectionCollectionView: UICollectionViewDataSource {
     
 }
 
-//MARK: - delegate
-extension YKSectionCollectionView: UICollectionViewDelegate {
+//MARK: - flowLayoutDelegate
+extension YKSectionCollectionView: UICollectionViewDelegateFlowLayout {
     
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let obj = self.datas[indexPath.section]
-        if obj.yksc_didSelectItem?(at: indexPath, contentView: self, callBack: { [weak self] viewcontroller, type, animate in
-            if let strongself = self {
-                guard let handleCallBack = strongself.handleViewController else { return  }
-                handleCallBack(viewcontroller,type,animate)
-            }
-        }) == nil {
-            
-        }
+        obj.yksc_didSelectItem?(at: indexPath, contentView: self, callBack: { [weak self] viewcontroller, type, animate in
+            guard let weakSelf = self else { return }
+            weakSelf.handleViewController?(viewcontroller,type,animate)
+        })
     }
-}
-
-//MARK: - flowLayout
-extension YKSectionCollectionView: UICollectionViewDelegateFlowLayout {
-    
     
     public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let obj = self.datas[indexPath.section]
@@ -459,6 +424,10 @@ extension YKSectionCollectionView: UICollectionViewDelegateFlowLayout {
         return obj.yksc_sectionMinimumInteritemSpacing?() ?? 0
     }
     
+    public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        let obj = self.datas[section]
+        return obj.yksc_cellEdge?() ?? UIEdgeInsets.zero
+    }
     
 }
 
@@ -516,14 +485,10 @@ private extension YKSectionCollectionView {
     
     @objc private func outTimeTodo() -> Void {
         self.loading = false
-        if let callBack = self.loadingCallBack {
-            callBack(false)
-        }
+        self.loadingCallBack?(false)
         self.objcs.removeAll()
         self.reloadData()
-        if let block = self.errorCallBack {
-            block(self.createError(errorMsg: "加载超时"))
-        }
+        self.errorCallBack?(self.createError(errorMsg: "加载超时"))
     }
     
     private func addNoDateView() ->Void {

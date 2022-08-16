@@ -14,6 +14,7 @@ public class YKSectionTableView: UITableView {
     
     private lazy var _nodataView:YKSectionNoDataView = {
         let view = YKSectionNoDataView.init(frame: self.bounds)
+        view.isHidden = true
         view.reloadCallBack = { [weak self] in
             guard let weakself = self else { return }
             weakself.refreshData(mode: .Header)
@@ -35,7 +36,7 @@ public class YKSectionTableView: UITableView {
     
     private var isNoMoreData:Bool = false
     
-    private var isNoData:Bool = false
+    private var afterReloadData:Bool = false
     
     public init(frame:CGRect, datas:[YKSectionTableViewProtocol], style:UITableView.Style = .plain) {
         super.init(frame: frame, style: style)
@@ -52,27 +53,19 @@ public class YKSectionTableView: UITableView {
     public override func reloadData() {
         
         super.reloadData()
+        
+        
+        var haveData = false
+        for vm in self.datas {
+            haveData = haveData || (vm.yksc_numberOfItem() > 0)
+        }
+        
         DispatchQueue.main.async { [weak self] in
             guard let weakself = self else { return }
             weakself.endRefresh?(weakself.isNoMoreData)
         }
-        self._nodataView.isShowNoData(noData: self.isNoData)
-        if self.datas.count >= 0 {
-            var count:Int = 0
-            for obj in self.datas {
-                count = count + obj.yksc_numberOfItem()
-            }
-            if count <= 0 {
-                //add nodata
-                self._nodataView.isHidden = false
-            }else{
-                //remove nodataView
-                self._nodataView.isHidden = true
-            }
-        }else{
-            //add NoData
-            self._nodataView.isHidden = false
-        }
+        self._nodataView.isHidden = !(self.afterReloadData && !haveData)
+        
     }
     
 
@@ -95,31 +88,54 @@ public extension YKSectionTableView {
         }else {
             //开始加载
             self.loading = true
+            self.isNoMoreData = false
+            self.afterReloadData = false
             self.loadingCallBack?(true)
             self.startTimer()
         }
         if self.datas.count <= 0 {
             self.loading = false
-            self.isNoData = true
-            self.isNoMoreData = true
+            self.afterReloadData = true
+            self.isNoMoreData = false
             self.loadingCallBack?(false)
             self.stopTimer()
             self.reloadData()
             return
         }
         
+        var refreshList:[YKSectionTableViewProtocol] = []
+        
+        for data in self.datas {
+            if mode == .Footer {
+                
+                if let beIn = data.yksc_isRefreshFooter?()
+                {
+                    if beIn {
+                        refreshList.append(data)
+                    }else {
+                        continue
+                    }
+                }else {
+                    refreshList.append(data)
+                }
+                
+            }else {
+                refreshList.append(data)
+            }
+        }
+        
         let reloadBlock = { [weak self] (obj:YKSectionTableViewProtocol, isNoMoreData:Bool) in
             guard let weakself = self else { return }
             let objcName = "d\(Unmanaged.passUnretained(obj).toOpaque())"
-            weakself.isNoData = true
+            
             weakself.isNoMoreData = weakself.isNoMoreData && isNoMoreData
             if weakself.objcs.count > 0 {
                 weakself.objcs.remove(at: weakself.objcs.firstIndex(of: objcName)!)
             }
             if weakself.objcs.count <= 0 {
+                weakself.afterReloadData = true
                 if weakself.loading {
                     weakself.loading = false
-                    weakself.isNoMoreData = false
                     weakself.loadingCallBack?(false)
                     weakself.stopTimer()
                     weakself.reloadData()
@@ -128,13 +144,13 @@ public extension YKSectionTableView {
                 }
             }
         }
-        for obj in self.datas {
+        for obj in refreshList {
             let objcName = "d\(Unmanaged.passUnretained(obj).toOpaque())"
             self.objcs.append(objcName)
             
         }
         
-        for obj in self.datas {
+        for obj in refreshList {
             obj.yksc_beginToReloadData(mode: mode) { isNoMoreData in
                 reloadBlock(obj,isNoMoreData)
             } errorCallBack: { [weak self] error in
@@ -214,14 +230,10 @@ extension YKSectionTableView: UITableViewDelegate {
     
     public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let obj = self.datas[indexPath.section]
-        if obj.yksc_didSelectItem?(at: indexPath, contentView: self, callBack: { [weak self] viewcontroller, type, animate in
-            if let strongself = self {
-                guard let handleCallBack = strongself.handleViewController else { return  }
-                handleCallBack(viewcontroller,type,animate)
-            }
-        }) == nil {
-            
-        }
+        obj.yksc_didSelectItem?(at: indexPath, contentView: self, callBack: { [weak self] viewcontroller, type, animate in
+            guard let weakSelf = self else { return }
+            weakSelf.handleViewController?(viewcontroller,type,animate)
+        })
     }
     
 }
@@ -254,13 +266,8 @@ extension YKSectionTableView: UITableViewDataSource {
                 }
             }
             
-            if myCell.conforms(to: YKSectionViewModelResuseProtocol.self) {
-                let cellP = myCell as! YKSectionViewModelResuseProtocol
-                if cellP.loadDataWithIndexPath?(obj, indexPath) == nil {
-                    #if DEBUG
-                    print("❌ \(myCell)未实现loadDataWithIndexPath：")
-                    #endif
-                }
+            if let cellP = myCell as? YKSectionViewModelResuseProtocol {
+                cellP.loadDataWithIndexPath?(obj, at: indexPath)
             }else {
                 #if DEBUG
                 print("❌ \(myCell)未继承'YKSectionViewModelResuseProtocol'协议")
@@ -284,11 +291,7 @@ extension YKSectionTableView: UITableViewDataSource {
     
     public func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let obj = self.datas[section]
-        
-        var isShowHeaderFooter:Bool = true
-        if let isShowHeaderFooterP = obj.yksc_noDataShowHeaderFooter?() {
-            isShowHeaderFooter = isShowHeaderFooterP
-        }
+        let isShowHeaderFooter:Bool = obj.yksc_noDataShowHeaderFooter?() ?? true
         let num = obj.yksc_numberOfItem()
         if (num > 0 || isShowHeaderFooter)  {
             if let headerId = obj.yksc_idForHeader?() {
@@ -306,13 +309,8 @@ extension YKSectionTableView: UITableViewDataSource {
                         }
                     }
                     
-                    if headerView.conforms(to: YKSectionViewModelResuseProtocol.self) {
-                        let headerViewP = headerView as! YKSectionViewModelResuseProtocol
-                        if headerViewP.loadDataWithSection?(obj, section) == nil {
-                            #if DEBUG
-                            print("❌ \(headerView)未实现loadDataWithSection：")
-                            #endif
-                        }
+                    if let headerViewP = headerView as? YKSectionViewModelResuseProtocol {
+                        headerViewP.loadDataWithIndexPath?(obj, at: IndexPath.init(row: 0, section: section))
                     }else {
                         #if DEBUG
                         print("❌ \(headerView)未继承'YKSectionViewModelResuseProtocol'协议")
@@ -344,10 +342,7 @@ extension YKSectionTableView: UITableViewDataSource {
     
     public func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
         let obj = self.datas[section]
-        var isShowHeaderFooter:Bool = true
-        if let isShowHeaderFooterP = obj.yksc_noDataShowHeaderFooter?() {
-            isShowHeaderFooter = isShowHeaderFooterP
-        }
+        let isShowHeaderFooter:Bool = obj.yksc_noDataShowHeaderFooter?() ?? true
         let num = obj.yksc_numberOfItem()
         if (num > 0 || isShowHeaderFooter)  {
             if let footerId = obj.yksc_idForFooter?() {
@@ -365,18 +360,14 @@ extension YKSectionTableView: UITableViewDataSource {
                         }
                     }
                     
-                    if footerView.conforms(to: YKSectionViewModelResuseProtocol.self) {
-                        let footerViewP = footerView as! YKSectionViewModelResuseProtocol
-                        if footerViewP.loadDataWithSection?(obj, section) == nil {
-                            #if DEBUG
-                            print("❌ \(footerView)未实现loadDataWithSection：")
-                            #endif
-                        }
+                    if let footerViewP = footerView as? YKSectionViewModelResuseProtocol {
+                        footerViewP.loadDataWithIndexPath?(obj, at: IndexPath.init(row: 0, section: section))
                     }else {
                         #if DEBUG
                         print("❌ \(footerView)未继承'YKSectionViewModelResuseProtocol'协议")
                         #endif
                     }
+                    
                     return footerView
                 }
             }
@@ -402,6 +393,8 @@ extension YKSectionTableView: UITableViewDataSource {
         }
         return 0
     }
+    
+    
     
 }
 

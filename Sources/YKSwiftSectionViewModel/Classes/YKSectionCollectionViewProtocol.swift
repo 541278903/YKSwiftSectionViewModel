@@ -36,5 +36,8 @@ import UIKit
     @objc optional func yksc_sectionMinimumInteritemSpacing() -> CGFloat
     
     
+    /// 获取edge大小
+    /// - Returns: 内部空间压缩
+    @objc optional func yksc_cellEdge() -> UIEdgeInsets
     
 }
