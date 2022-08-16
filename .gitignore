@@ -7,3 +7,5 @@ DerivedData/
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 
 Example/Pods/
+
+Example/Podfile.lock
