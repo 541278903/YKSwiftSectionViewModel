@@ -226,13 +226,8 @@ public extension YKSectionCollectionView {
             print("❌ endRefresh已设置，请勿重新设置")
             #endif
         }
-
-        return result
     }
-}
-
-//MARK: - dataSource
-extension YKSectionCollectionView: UICollectionViewDataSource {
+    
     
     /// 设置刷新动作
     /// - Parameter loadingCallBack: 设置刷新动作
