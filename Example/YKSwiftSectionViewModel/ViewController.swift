@@ -27,10 +27,10 @@ class ViewController: UIViewController {
         collectionView.toSetHandleViewController { [weak self] controller, type, animated in
             guard let weakSelf = self else { return }
             switch type {
-            case .push:
+            case .Push:
 //                weakSelf.currentNavViewController()?.pushViewController(controller, animated: true)
                 weakSelf.navigationController?.pushViewController(controller, animated: animated)
-            case .presses:
+            case .Present:
                 weakSelf.present(controller, animated: animated, completion: nil)
             }
         }
