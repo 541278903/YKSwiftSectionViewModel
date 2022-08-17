@@ -236,49 +236,6 @@ extension YKSectionTableView: UITableViewDelegate {
         })
     }
     
-}
-
-//MARK: - dataSource
-extension YKSectionTableView: UITableViewDataSource {
-    
-    public func numberOfSections(in tableView: UITableView) -> Int {
-        return self.datas.count
-    }
-    
-    public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        let obj = self.datas[section]
-        return obj.yksc_numberOfItem()
-    }
-    
-    public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
-        let obj = self.datas[indexPath.section]
-        let Id = obj.yksc_idForItem(at: indexPath)
-        if let myCell = tableView.dequeueReusableCell(withIdentifier: Id) {
-            
-            if let yk_tableViewCell = myCell as? YKSectionTableViewCell {
-                yk_tableViewCell.toSetClickEvent { [weak self] eventName, userInfo in
-                    guard let weakself = self else { return }
-                    let model = weakself.datas[indexPath.section]
-                    let _ = model.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo ?? [:], contentView: weakself, callBack: weakself.handleViewController ?? { _,_,_ in
-                        
-                    })
-                }
-            }
-            
-            if let cellP = myCell as? YKSectionViewModelResuseProtocol {
-                cellP.loadDataWithIndexPath?(obj, at: indexPath)
-            }else {
-                #if DEBUG
-                print("❌ \(myCell)未继承'YKSectionViewModelResuseProtocol'协议")
-                #endif
-            }
-            return myCell
-        }else {
-            return tableView.dequeueReusableCell(withIdentifier: "YKSectionTableViewCell") ?? YKSectionTableViewCell.init(style: .default, reuseIdentifier: "YKSectionTableViewCell")
-        }
-    }
-    
     public func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         let obj = self.datas[indexPath.section]
         return obj.yksc_heightOfRow(at: indexPath.row)
@@ -394,6 +351,61 @@ extension YKSectionTableView: UITableViewDataSource {
         return 0
     }
     
+    
+    @available(iOS, introduced: 8.0, deprecated: 11.0)
+    public func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
+        let obj = self.datas[indexPath.section]
+        return obj.yksc_editActions?(at: indexPath.row)
+    }
+    
+}
+
+//MARK: - dataSource
+extension YKSectionTableView: UITableViewDataSource {
+    
+    public func numberOfSections(in tableView: UITableView) -> Int {
+        return self.datas.count
+    }
+    
+    public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        let obj = self.datas[section]
+        return obj.yksc_numberOfItem()
+    }
+    
+    public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
+        let obj = self.datas[indexPath.section]
+        let Id = obj.yksc_idForItem(at: indexPath)
+        if let myCell = tableView.dequeueReusableCell(withIdentifier: Id) {
+            
+            if let yk_tableViewCell = myCell as? YKSectionTableViewCell {
+                yk_tableViewCell.toSetClickEvent { [weak self] eventName, userInfo in
+                    guard let weakself = self else { return }
+                    let model = weakself.datas[indexPath.section]
+                    let _ = model.yksc_handleRouterEvent?(eventName: eventName, userInfo: userInfo ?? [:], contentView: weakself, callBack: weakself.handleViewController ?? { _,_,_ in
+                        
+                    })
+                }
+            }
+            
+            if let cellP = myCell as? YKSectionViewModelResuseProtocol {
+                cellP.loadDataWithIndexPath?(obj, at: indexPath)
+            }else {
+                #if DEBUG
+                print("❌ \(myCell)未继承'YKSectionViewModelResuseProtocol'协议")
+                #endif
+            }
+            return myCell
+        }else {
+            return tableView.dequeueReusableCell(withIdentifier: "YKSectionTableViewCell") ?? YKSectionTableViewCell.init(style: .default, reuseIdentifier: "YKSectionTableViewCell")
+        }
+    }
+    
+    
+    public func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        let obj = self.datas[indexPath.section]
+        return obj.yksc_canEdit?(at: indexPath.row) ?? false
+    }
     
     
 }

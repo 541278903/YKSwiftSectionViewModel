@@ -36,4 +36,9 @@ import UIKit
     /// - Returns: 估高
     @objc optional func yksc_estimatedHeightOfFooter() -> CGFloat
     
+    /// 获取当前底部cell
+    /// - Returns: 是否可以编辑
+    @objc optional func yksc_canEdit(at row:Int) -> Bool
+    
+    
 }
