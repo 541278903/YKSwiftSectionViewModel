@@ -294,7 +294,7 @@ extension YKSectionTableView: UITableViewDelegate {
         if num > 0 || isShowHeaderFooter {
             return obj.yksc_heightOfHeader?() ?? 0.00001
         }
-        return 0
+        return 0.00001
     }
     
     public func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
@@ -348,15 +348,10 @@ extension YKSectionTableView: UITableViewDelegate {
         if num > 0 || isShowHeaderFooter {
             return obj.yksc_heightOfFooter?() ?? 0.00001
         }
-        return 0
+        return 0.00001
     }
     
     
-    @available(iOS, introduced: 8.0, deprecated: 11.0)
-    public func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
-        let obj = self.datas[indexPath.section]
-        return obj.yksc_editActions?(at: indexPath.row)
-    }
     
 }
 
